@@ -1,3 +1,8 @@
-This is an example plugin for homebridge. It is a fully-working implementation of a Lockitron door lock accessory.
+# homebridge-fhem2
+This is an example plugin for homebridge. It is used for bridging FHEM devices to homebridge using a platform shim.
 
-Remember to run `npm install` in this directory in order to install the dependencies needed by this plugin. If a user is installing your plugin from npm, this will be done automatically for them.
+# Quick Start
+ * install using npm install -g
+ * adapt config.json of homebridge
+ * add cutom-attribute "homebridgeType" to FHEM
+ * set the new attribute type accordingly
