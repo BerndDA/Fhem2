@@ -6,3 +6,5 @@ This is an example plugin for homebridge. It is used for bridging FHEM devices t
  * adapt config.json of homebridge
  * add cutom-attribute "homebridgeType" to FHEM
  * set the new attribute type accordingly
+
+**Note:** More exensive documentation in the works... 
