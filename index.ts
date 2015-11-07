@@ -64,7 +64,7 @@ class Fhem2Platform {
         });
 
         http.createServer((req, res) => {
-            res.end("ok");
+            res.end("ok"); 
             var splitted = req.url.toString().split('/');
             this.log(req.url.toString());
             if (allSubscriptions[splitted[1]]) {
@@ -124,7 +124,16 @@ abstract class FhemAccessory {
     }
 
     protected setFhemReading(reading: string, value: string): void {
-        var cmd = 'set ' + this.fhemName + ' ';
+        this.setFhemReadingForDevice(this.fhemName, reading, value);
+    }
+
+    protected setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
+        var cmd: string;
+        if (!force) {
+            cmd = 'set ' + device + ' ';
+        } else {
+            cmd = 'setreading ' + device + ' ';
+        }
         if (reading) cmd += reading + ' ';
         cmd += value;
         var url = encodeURI(this.baseUrl + "/fhem?cmd=" + cmd + "&XHR=1");
@@ -367,8 +376,32 @@ class FhemThermostat extends FhemAccessory {
     }
 }
 
+class FhemHeatingKW910 extends FhemThermostat {
+    public setFhemValue(reading: string, value: string): void {
+        super.setFhemValue(reading, value);
+        if (reading === 'Code') {
+            var res = this.calcValues(value);
+            this.setFhemReadingForDevice(this.data.Internals.TEMPSENSOR, "temperature", res.T.toString(), true);
+            this.setFhemReadingForDevice(this.data.Internals.TEMPSENSOR, "humidity", res.H.toString(), true);
+        }
+    }
+
+    private calcValues(code: string): { T: Number, H: Number } {
+        var bin = Number('0x' + code).toString(2);
+        while(bin.length % 8 != 0) {
+            bin = '0' + bin;
+        }
+        var temp = parseInt(bin.substr(12, 11).split('').reverse().join(''), 2);
+        if (bin[23] === '1') temp -= 2048;
+        temp /= 10;
+        var hum = parseInt(bin.substr(24, 8).split('').reverse().join(''), 2) - 156;
+        return { T: temp, H: hum };
+    }
+}
+
 
 accessoryTypes['heating'] = FhemThermostat;
+accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
 accessoryTypes['switch'] = FhemSwitch;
 accessoryTypes['lightbulb'] = FhemLightbulb;
 accessoryTypes['motionsensor'] = FhemMotionSensor;
