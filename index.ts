@@ -290,18 +290,19 @@ class FhemContactSensor extends FhemSensor {
 
 class FhemThermostat extends FhemAccessory {
 
-    protected currentHeatingCoolingState;
-    protected targetHeatingCoolingState;
-    protected currentTemperature;
-    protected targetTemperature;
-    protected temperatureDisplayUnits;
-    protected currentRelativeHumidity;
+    private currentHeatingCoolingState;
+    private targetHeatingCoolingState;
+    private currentTemperature;
+    private targetTemperature;
+    private temperatureDisplayUnits;
+    private currentRelativeHumidity;
+    private tempsensor: string;
 
     constructor(data, log, baseUrl: string) {
         super(data, log, baseUrl);
         //register on tempsensor
-        var tempsensor = this.data.Internals.TEMPSENSOR;
-        allSubscriptions[tempsensor] ? allSubscriptions[tempsensor].push(this) : allSubscriptions[tempsensor] = [this];
+        this.tempsensor = this.data.Internals.TEMPSENSOR;
+        allSubscriptions[this.tempsensor] ? allSubscriptions[this.tempsensor].push(this) : allSubscriptions[this.tempsensor] = [this];
     }
 
     public getDeviceService(): any {
@@ -335,18 +336,14 @@ class FhemThermostat extends FhemAccessory {
     }
 
     public getCurrentTemp(callback): void {
-        this.getFhemNamedValue(FhemValueType.Internals, 'TEMPSENSOR', (device) => {
-            this.getFhemNamedValueForDevice(device, FhemValueType.Readings, 'temperature', (temp) => {
-                callback(null, Number(temp));
-            });
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature', (temp) => {
+            callback(null, Number(temp));
         });
     }
 
     public getCurrentHumidity(callback): void {
-        this.getFhemNamedValue(FhemValueType.Internals, 'TEMPSENSOR', (device) => {
-            this.getFhemNamedValueForDevice(device, FhemValueType.Readings, 'humidity', (temp) => {
-                callback(null, Number(temp));
-            });
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity', (temp) => {
+            callback(null, Number(temp));
         });
     }
 
