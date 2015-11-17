@@ -136,9 +136,13 @@ abstract class FhemAccessory {
         }
         if (reading) cmd += reading + ' ';
         cmd += value;
+        this.executeCommand(cmd);
+    }
+
+    protected executeCommand(cmd: string): void {
         var url = encodeURI(this.baseUrl + "/fhem?cmd=" + cmd + "&XHR=1");
         http.get(url).on('error', (e) => {
-            this.log("error executing: " + url + e);
+            this.log("error executing: " + cmd +' ' + e);
         });
     }
 
@@ -296,7 +300,7 @@ class FhemThermostat extends FhemAccessory {
     private targetTemperature;
     private temperatureDisplayUnits;
     private currentRelativeHumidity;
-    private tempsensor: string;
+    protected tempsensor: string;
 
     constructor(data, log, baseUrl: string) {
         super(data, log, baseUrl);
@@ -378,8 +382,9 @@ class FhemHeatingKW910 extends FhemThermostat {
         super.setFhemValue(reading, value);
         if (reading === 'Code') {
             var res = this.calcValues(value);
-            this.setFhemReadingForDevice(this.data.Internals.TEMPSENSOR, "temperature", res.T.toString(), true);
-            this.setFhemReadingForDevice(this.data.Internals.TEMPSENSOR, "humidity", res.H.toString(), true);
+            this.setFhemReadingForDevice(this.tempsensor, "temperature", res.T.toString(), true);
+            this.setFhemReadingForDevice(this.tempsensor, "humidity", res.H.toString(), true);
+            this.executeCommand('setstate ' + this.tempsensor + ' T: ' + res.T.toString() + ' H: ' + res.H.toString());
         }
     }
 
