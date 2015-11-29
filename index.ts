@@ -401,6 +401,30 @@ class FhemHeatingKW910 extends FhemThermostat {
     }
 }
 
+class FhemTemperatureSensor extends FhemAccessory {
+
+    private currentTemperature: any;
+
+    public getDeviceService(): any {
+        var service = new Service.TemperatureSensor(this.name);
+        this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature);
+        this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
+        return service;
+    }
+
+    public setFhemValue(reading: string, value: string): void {
+        this.log('received value: ' + reading + '.' + value + ' for ' + this.name);
+        if (reading === 'temperature') {
+            this.currentTemperature.setValue(Number(value), undefined, 'fhem');
+        }
+    }
+
+    public getCurrentTemp(callback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, 'temperature', (temp) => {
+            callback(null, Number(temp));
+        });
+    }
+}
 
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
@@ -408,4 +432,5 @@ accessoryTypes['switch'] = FhemSwitch;
 accessoryTypes['lightbulb'] = FhemLightbulb;
 accessoryTypes['motionsensor'] = FhemMotionSensor;
 accessoryTypes['contactsensor'] = FhemContactSensor;
+accessoryTypes['temperaturesensor'] = FhemTemperatureSensor;
 accessoryTypes['outlet'] = FhemOutlet;
