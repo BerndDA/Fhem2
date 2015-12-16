@@ -426,6 +426,31 @@ class FhemTemperatureSensor extends FhemAccessory {
     }
 }
 
+class FhemTempKW9010 extends FhemTemperatureSensor {
+    public setFhemValue(reading: string, value: string): void {
+        super.setFhemValue(reading, value);
+        if (reading === 'Code') {
+            var res = this.calcValues(value);
+            this.setFhemReading("temperature", res.T.toString());
+            this.setFhemReadingForDevice(this.fhemName, "temperature", res.T.toString(), true);
+            this.setFhemReadingForDevice(this.fhemName, "humidity", res.H.toString(), true);
+            this.executeCommand('setstate ' + this.fhemName + ' T: ' + res.T.toString() + ' H: ' + res.H.toString());
+        }
+    }
+
+    private calcValues(code: string): { T: Number, H: Number } {
+        var bin = Number('0x' + code).toString(2);
+        while (bin.length % 8 != 0) {
+            bin = '0' + bin;
+        }
+        var temp = parseInt(bin.substr(12, 11).split('').reverse().join(''), 2);
+        if (bin[23] === '1') temp -= 2048;
+        temp /= 10;
+        var hum = parseInt(bin.substr(24, 8).split('').reverse().join(''), 2) - 156;
+        return { T: temp, H: hum };
+    }
+}
+
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
 accessoryTypes['switch'] = FhemSwitch;
@@ -433,4 +458,5 @@ accessoryTypes['lightbulb'] = FhemLightbulb;
 accessoryTypes['motionsensor'] = FhemMotionSensor;
 accessoryTypes['contactsensor'] = FhemContactSensor;
 accessoryTypes['temperaturesensor'] = FhemTemperatureSensor;
+accessoryTypes['tempKW9010'] = FhemTempKW9010;
 accessoryTypes['outlet'] = FhemOutlet;
