@@ -408,6 +408,7 @@ class FhemTemperatureSensor extends FhemAccessory {
     public getDeviceService(): any {
         var service = new Service.TemperatureSensor(this.name);
         this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature);
+        this.currentTemperature.setProps({ minValue: -25 });
         this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
         return service;
     }
