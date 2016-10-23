@@ -57,9 +57,10 @@ class Fhem2Platform {
         http.get(url, () => {
             //create notification
             dns.lookup(os.hostname(), (err, add, fam) => {
-                var command = encodeURIComponent(`define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url => "http://${add
-                    }:2000/$NAME/$new" })}`);
-                url = this.baseUrl + "/fhem?cmd=" + command + "&XHR=1";
+                var command =
+                    encodeURIComponent(`define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url => "http://${add
+                        }:2000/$NAME/$new" })}`);
+                url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
                 http.get(url);
             });
         });
@@ -80,7 +81,7 @@ class Fhem2Platform {
         var cmd = "jsonlist2";
         if (this.filter)
             cmd += " " + this.filter;
-        var url = encodeURI(this.baseUrl + "/fhem?cmd=" + cmd + "&XHR=1");
+        var url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
 
         http.get(url, (response) => {
             response.setEncoding("utf8");
@@ -131,9 +132,9 @@ abstract class FhemAccessory {
     protected setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
         var cmd: string;
         if (!force) {
-            cmd = "set " + device + " ";
+            cmd = `set ${device} `;
         } else {
-            cmd = "setreading " + device + " ";
+            cmd = `setreading ${device} `;
         }
         if (reading) cmd += reading + " ";
         cmd += value;
@@ -141,7 +142,7 @@ abstract class FhemAccessory {
     }
 
     protected executeCommand(cmd: string): void {
-        var url = encodeURI(this.baseUrl + "/fhem?cmd=" + cmd + "&XHR=1");
+        var url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
         http.get(url).on("error", (e) => {
             this.log("error executing: " + cmd +" " + e);
         });
@@ -156,7 +157,7 @@ abstract class FhemAccessory {
     }
 
     protected getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string, callback: (string) => void): void {
-        var url = encodeURI(this.baseUrl + "/fhem?cmd=jsonlist2 " + device + " " + name + "&XHR=1");
+        var url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
         http.get(url, (response) => {
             response.setEncoding("utf8");
             response.on("data", (chunk) => {
@@ -204,8 +205,8 @@ abstract class FhemOnOffSwitchable extends FhemAccessory {
     characteristic: any;
 
     public getPowerState(callback): void {
-        this.getFhemStatus(function (status) {
-            callback(null, status === "on" ? true : false);
+        this.getFhemStatus(status => {
+            callback(null, status === "on");
         });
     }
 
@@ -216,8 +217,8 @@ abstract class FhemOnOffSwitchable extends FhemAccessory {
     }
 
     public setFhemValue(value: string): void {
-        this.log("received value: " + value + " for " + this.name);
-        this.characteristic.setValue(value === "on" ? true : false, undefined, "fhem");
+        this.log(`received value: ${value} for ${this.name}`);
+        this.characteristic.setValue(value === "on", undefined, "fhem");
     }
 }
 
@@ -266,7 +267,7 @@ abstract class FhemSensor extends FhemAccessory {
     }
 
     public setFhemValue(value: string): void {
-        this.log("received value: " + value + " for " + this.name);
+        this.log(`received value: ${value} for ${this.name}`);
         this.characteristic.setValue(value === "on", undefined, "fhem");
     }
 }
