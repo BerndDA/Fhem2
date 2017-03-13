@@ -58,8 +58,7 @@ class Fhem2Platform {
             //create notification
             dns.lookup(os.hostname(), (err, add, fam) => {
                 var command =
-                    encodeURIComponent(`define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url => "http://${add
-                        }:2000/$NAME/$new" })}`);
+                    encodeURIComponent(`define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${add}:2000/$NAME/$new", callback=>sub($$$){} })}`);
                 url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
                 http.get(url);
             });
