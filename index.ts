@@ -482,6 +482,7 @@ class FhemWindowCovering extends FhemAccessory {
 
         this.positionState = service.getCharacteristic(Characteristic.PositionState);
         this.positionState.on("get", this.getPositionState.bind(this));
+        return service;
     }
 
     public getCurrentPosition(callback): void {

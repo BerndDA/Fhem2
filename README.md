@@ -33,3 +33,5 @@ support switching with STATE on|off
 every device reporting status with STATE on|off
 ### FhemThermostat
 support for PWMR type
+### WindowCovering
+support for Eltako enocean actors
