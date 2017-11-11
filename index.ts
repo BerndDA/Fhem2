@@ -460,9 +460,9 @@ class FhemWindowCovering extends FhemAccessory {
 
     setFhemValue(value: string, part2?: string): void {
         if (value === "down") {
-            this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, "fhem");
-        } else if (value === "up") {
             this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, "fhem");
+        } else if (value === "up") {
+            this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, "fhem");
         } else if (value === "stop") {
             this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
         } else if (value === "open_ack") {
@@ -498,8 +498,8 @@ class FhemWindowCovering extends FhemAccessory {
 
     public getPositionState(callback): void {
         this.getFhemStatus((status) => {
-            if (status === "down") callback(null, Characteristic.PositionState.DECREASING);
-            else if (status === "up") callback(null, Characteristic.PositionState.INCREASING);
+            if (status === "down") callback(null, Characteristic.PositionState.INCREASING);
+            else if (status === "up") callback(null, Characteristic.PositionState.DECREASING);
             else callback(null, Characteristic.PositionState.STOPPED);
         });
     }
