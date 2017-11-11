@@ -453,6 +453,58 @@ class FhemTempKW9010 extends FhemTemperatureSensor {
     }
 }
 
+class FhemWindowCovering extends FhemAccessory {
+    private currentPosition;
+    private targetPosition;
+    private positionState;
+
+    setFhemValue(value: string, part2?: string): void {
+        if (value === "down") {
+            this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, "fhem");
+        } else if (value === "up") {
+            this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, "fhem");
+        } else if (!part2) {
+            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
+        }
+
+        if (value === "position") {
+            this.currentPosition.setValue(Number(part2), undefined, "fhem");
+        }    
+    }
+
+    getDeviceService() {
+        var service = new Service.WindowCovering(this.name);
+        this.currentPosition = service.getCharacteristic(Characteristic.CurrentPosition);
+        this.currentPosition.on("get", this.getCurrentPosition.bind(this));
+
+        this.targetPosition = service.getCharacteristic(Characteristic.TargetPosition);
+        this.targetPosition.on("get", this.getCurrentPosition.bind(this)).on("set", this.setTargetPosition.bind(this));
+
+        this.positionState = service.getCharacteristic(Characteristic.PositionState);
+        this.positionState.on("get", this.getPositionState.bind(this));
+    }
+
+    public getCurrentPosition(callback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, "position", (pos) => {
+            callback(null, Number(pos));
+        });
+    }
+
+    public getPositionState(callback): void {
+        this.getFhemStatus((status) => {
+            if (status === "down") callback(null, Characteristic.PositionState.INCREASING);
+            else if (status === "up") callback(null, Characteristic.PositionState.DECREASING);
+            else callback(null, Characteristic.PositionState.STOPPED);
+        });
+    }
+
+    public setTargetPosition(value: number, callback, context: string): void {
+        if (context !== "fhem")
+            this.setFhemReading("position", value.toString());
+        callback();
+    }
+}
+
 accessoryTypes["heating"] = FhemThermostat;
 accessoryTypes["heatingKW9010"] = FhemHeatingKW910;
 accessoryTypes["switch"] = FhemSwitch;
@@ -462,3 +514,4 @@ accessoryTypes["contactsensor"] = FhemContactSensor;
 accessoryTypes["temperaturesensor"] = FhemTemperatureSensor;
 accessoryTypes["tempKW9010"] = FhemTempKW9010;
 accessoryTypes["outlet"] = FhemOutlet;
+accessoryTypes["windowcovering"] = FhemWindowCovering;
