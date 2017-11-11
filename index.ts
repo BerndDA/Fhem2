@@ -460,9 +460,9 @@ class FhemWindowCovering extends FhemAccessory {
 
     setFhemValue(value: string, part2?: string): void {
         if (value === "down") {
-            this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, "fhem");
-        } else if (value === "up") {
             this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, "fhem");
+        } else if (value === "up") {
+            this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, "fhem");
         } else if (!part2) {
             this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
         }
@@ -487,21 +487,21 @@ class FhemWindowCovering extends FhemAccessory {
 
     public getCurrentPosition(callback): void {
         this.getFhemNamedValue(FhemValueType.Readings, "position", (pos) => {
-            callback(null, Number(pos));
+            callback(null, 100 - Number(pos));
         });
     }
 
     public getPositionState(callback): void {
         this.getFhemStatus((status) => {
-            if (status === "down") callback(null, Characteristic.PositionState.INCREASING);
-            else if (status === "up") callback(null, Characteristic.PositionState.DECREASING);
+            if (status === "down") callback(null, Characteristic.PositionState.DECREASING);
+            else if (status === "up") callback(null, Characteristic.PositionState.INCREASING);
             else callback(null, Characteristic.PositionState.STOPPED);
         });
     }
 
     public setTargetPosition(value: number, callback, context: string): void {
         if (context !== "fhem")
-            this.setFhemReading("position", value.toString());
+            this.setFhemReading("position", (100-value).toString());
         callback();
     }
 }
