@@ -463,12 +463,17 @@ class FhemWindowCovering extends FhemAccessory {
             this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, "fhem");
         } else if (value === "up") {
             this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, "fhem");
-        } else if (!part2) {
+        } else if (value === "stop") {
             this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
+        } else if (value === "open_ack") {
+            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
+            this.currentPosition.setValue(100, undefined, "fhem");
+        } else if (value === "closed") {
+            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
+            this.currentPosition.setValue(0, undefined, "fhem");
         }
-
         if (value === "position") {
-            this.currentPosition.setValue(Number(part2), undefined, "fhem");
+            this.currentPosition.setValue(100 - Number(part2), undefined, "fhem");
         }    
     }
 
