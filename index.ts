@@ -503,15 +503,17 @@ class FhemWindowCovering extends FhemAccessory {
 
     public getPositionState(callback): void {
         this.getFhemStatus((status) => {
-            if (status === "down") callback(null, Characteristic.PositionState.INCREASING);
-            else if (status === "up") callback(null, Characteristic.PositionState.DECREASING);
+            if (status === "down" || status === "closes") callback(null, Characteristic.PositionState.INCREASING);
+            else if (status === "up" || status === "opens") callback(null, Characteristic.PositionState.DECREASING);
             else callback(null, Characteristic.PositionState.STOPPED);
         });
     }
 
     public setTargetPosition(value: number, callback, context: string): void {
         if (context !== "fhem") {
-            this.setFhemReading("position", (100 - value).toString());
+            if (value === 100) this.setFhemStatus("opens");
+            else if (value === 0) this.setFhemStatus("closes");
+            else this.setFhemReading("position", (100 - value).toString());
         }
         callback();
     }
