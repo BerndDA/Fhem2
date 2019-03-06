@@ -33,3 +33,9 @@ node_modules
 # compiled files
 *.js
 *.js.map
+/.vs
+/bin
+/obj
+/FHEM_Homebridge.sln.DotSettings.user
+/FHEM_Homebridge.sln
+/FHEM_Homebridge.njsproj

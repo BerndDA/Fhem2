@@ -1,9 +1,9 @@
 ﻿/// <reference path="./Scripts/typings/node/node.d.ts" />
 
-import util = require("util");
-import http = require("http");
-import dns = require("dns");
-import os = require("os");
+import util = require('util');
+import http = require('http');
+import dns = require('dns');
+import os = require('os');
 
 var allSubscriptions: { [name: string]: FhemAccessory[] } = {};
 var accessoryTypes: { [name: string]: any } = {};
@@ -14,7 +14,7 @@ module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
 
-    homebridge.registerPlatform("homebridge-fhem2", "Fhem2", Fhem2Platform);
+    homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform);
 };
 
 interface IConfig {
@@ -44,16 +44,16 @@ class Fhem2Platform {
         this.filter = config.filter;
 
         if (config.ssl)
-            this.baseUrl = "https://";
+            this.baseUrl = 'https://';
         else
-            this.baseUrl = "http://";
+            this.baseUrl = 'http://';
         this.baseUrl += `${this.server}:${this.port}`;
         this.subscribeToFhem();
     }
 
     private subscribeToFhem() {
         //delete the notification
-        var url = encodeURI(this.baseUrl + "/fhem?cmd=delete nfHomekitdev&XHR=1");
+        var url = encodeURI(this.baseUrl + '/fhem?cmd=delete nfHomekitdev&XHR=1');
         http.get(url, () => {
             //create notification
             dns.lookup(os.hostname(), (err, add, fam) => {
@@ -65,8 +65,8 @@ class Fhem2Platform {
         });
 
         http.createServer((req, res) => {
-            res.end("ok"); 
-            var splitted = req.url.toString().split("/");
+            res.end('ok'); 
+            var splitted = req.url.toString().split('/');
             this.log(req.url.toString());
             if (allSubscriptions[splitted[1]]) {
                 allSubscriptions[splitted[1]].forEach((accessory) => {
@@ -77,29 +77,29 @@ class Fhem2Platform {
     }
 
     public accessories(callback): void {
-        var cmd = "jsonlist2";
+        let cmd = 'jsonlist2';
         if (this.filter)
-            cmd += " " + this.filter;
-        var url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
+            cmd += ' ' + this.filter;
+        const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
 
         http.get(url, (response) => {
-            response.setEncoding("utf8");
-            var data = "";
-            response.on("data", (chunk) => {
+            response.setEncoding('utf8');
+            var data = '';
+            response.on('data', (chunk) => {
                 data += chunk;
             });
-            response.on("end", () => {
+            response.on('end', () => {
                 var devicelist = JSON.parse(data);
                 var acc = [];
-                for (var i = 0; i < devicelist.Results.length; i++) {
-                    var device = devicelist.Results[i];
+                for (let i = 0; i < devicelist.Results.length; i++) {
+                    const device = devicelist.Results[i];
                     if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
                     acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
                 }
                 callback(acc);
             });
-        }).on("error", (e) => {
-            this.log("error in request to FHEM");
+        }).on('error', (e) => {
+            this.log('error in request to FHEM');
         });
     }
 }
@@ -111,7 +111,7 @@ abstract class FhemAccessory {
     fhemName: string;
     baseUrl: string;
 
-    constructor(data, log, baseUrl: string) {
+    protected constructor(data, log, baseUrl: string) {
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
@@ -129,26 +129,26 @@ abstract class FhemAccessory {
     }
 
     protected setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
-        var cmd: string;
+        let cmd: string;
         if (!force) {
             cmd = `set ${device} `;
         } else {
             cmd = `setreading ${device} `;
         }
-        if (reading) cmd += reading + " ";
+        if (reading) cmd += reading + ' ';
         cmd += value;
         this.executeCommand(cmd);
     }
 
     protected executeCommand(cmd: string): void {
-        var url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-        http.get(url).on("error", (e) => {
-            this.log("error executing: " + cmd +" " + e);
+        const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
+        http.get(url).on('error', (e) => {
+            this.log('error executing: ' + cmd +' ' + e);
         });
     }
 
     protected getFhemStatus(callback: (string) => void): void {
-        this.getFhemNamedValue(FhemValueType.Internals, "STATE", callback);
+        this.getFhemNamedValue(FhemValueType.Internals, 'STATE', callback);
     }
 
     protected getFhemNamedValue(fhemType: FhemValueType, name: string, callback: (string) => void): void {
@@ -158,43 +158,46 @@ abstract class FhemAccessory {
     protected getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string, callback: (string) => void): void {
         var url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
         http.get(url, (response) => {
-            response.setEncoding("utf8");
-            response.on("data", (chunk) => {
+            response.setEncoding('utf8');
+            response.on('data', (chunk) => {
                 var devicelist = JSON.parse(chunk);
                 if (devicelist.Results.length > 0) {
-                    var val = devicelist.Results[0][FhemValueType[fhemType]][name];
+                    const val = devicelist.Results[0][FhemValueType[fhemType]][name];
                     callback(val.Value ? val.Value : val);
                     return;
                 }
                 callback(null);
             });
-        }).on("error", (e) => {
-            this.log("error executing: " + url + e);
+        }).on('error', (e) => {
+            this.log('error executing: ' + url + e);
             callback(null);
         });
     }
 
     public abstract setFhemValue(value: string, part2?: string): void;
-    protected abstract getDeviceService(): any;
+    protected abstract getDeviceServices(): any[];
 
     public getServices(): any[] {
-        var informationService = new Service.AccessoryInformation();
+        const informationService = new Service.AccessoryInformation();
 
         informationService
-            .setCharacteristic(Characteristic.Manufacturer, "FHEM")
+            .setCharacteristic(Characteristic.Manufacturer, 'FHEM')
             .setCharacteristic(Characteristic.Model, this.data.Internals.TYPE)
             .setCharacteristic(Characteristic.SerialNumber, this.data.Internals.NR);
-        var deviceService = this.getDeviceService();
+        const deviceServices = this.getDeviceServices();
         var $this = this;
-        deviceService.getCharacteristic(Characteristic.Name)
-            .on("get", (cb) => {
-                cb(null, $this.data.Attributes.siriName ? $this.data.Attributes.siriName : "");
-            });
-        return [informationService, deviceService];
+        deviceServices.forEach((element) => {
+            element.getCharacteristic(Characteristic.Name)
+                .on('get', (cb) => {
+                    cb(null, $this.data.Attributes.siriName ? $this.data.Attributes.siriName : '');
+                });
+        });
+
+        return [informationService].concat(deviceServices);
     }
 
     public identify(callback) {
-        this.log("Identify requested!");
+        this.log('Identify requested!');
         callback(); // success
     }
 }
@@ -205,53 +208,53 @@ abstract class FhemOnOffSwitchable extends FhemAccessory {
 
     public getPowerState(callback): void {
         this.getFhemStatus(status => {
-            callback(null, status === "on");
+            callback(null, status === 'on');
         });
     }
 
     public setPowerState(value: boolean, callback, context: string): void {
-        if (context !== "fhem")
-            this.setFhemStatus(value ? "on" : "off");
+        if (context !== 'fhem')
+            this.setFhemStatus(value ? 'on' : 'off');
         callback();
     }
 
     public setFhemValue(value: string): void {
         this.log(`received value: ${value} for ${this.name}`);
-        this.characteristic.setValue(value === "on", undefined, "fhem");
+        this.characteristic.setValue(value === 'on', undefined, 'fhem');
     }
 }
 
 class FhemSwitch extends FhemOnOffSwitchable {
-    public getDeviceService(): any {
-        var switchService = new Service.Switch(this.name);
+    public getDeviceServices(): any[] {
+        const switchService = new Service.Switch(this.name);
         this.characteristic = switchService.getCharacteristic(Characteristic.On);
         this.characteristic
-            .on("get", this.getPowerState.bind(this))
-            .on("set", this.setPowerState.bind(this));
-        return switchService;
+            .on('get', this.getPowerState.bind(this))
+            .on('set', this.setPowerState.bind(this));
+        return [switchService];
     }
 }
 
 class FhemLightbulb extends FhemOnOffSwitchable {
-    public getDeviceService(): any {
-        var service = new Service.Lightbulb(this.name);
+    public getDeviceServices(): any[] {
+        const service = new Service.Lightbulb(this.name);
         this.characteristic = service.getCharacteristic(Characteristic.On);
         this.characteristic
-            .on("get", this.getPowerState.bind(this))
-            .on("set", this.setPowerState.bind(this));
-        return service;
+            .on('get', this.getPowerState.bind(this))
+            .on('set', this.setPowerState.bind(this));
+        return [service];
     }
 }
 
 class FhemOutlet extends FhemOnOffSwitchable {
-    public getDeviceService(): any {
-        var service = new Service.Outlet(this.name);
+    public getDeviceServices(): any[] {
+        const service = new Service.Outlet(this.name);
         this.characteristic = service.getCharacteristic(Characteristic.On);
         this.characteristic
-            .on("get", this.getPowerState.bind(this))
-            .on("set", this.setPowerState.bind(this));
-        service.getCharacteristic(Characteristic.OutletInUse).on("get", (callback) => { callback(null, true); });
-        return service;
+            .on('get', this.getPowerState.bind(this))
+            .on('set', this.setPowerState.bind(this));
+        service.getCharacteristic(Characteristic.OutletInUse).on('get', (callback) => { callback(null, true); });
+        return [service];
     }
 }
 
@@ -260,36 +263,36 @@ abstract class FhemSensor extends FhemAccessory {
 
     public getState(callback): void {
         this.getFhemStatus(status => {
-            callback(null, status === "on");
+            callback(null, status === 'on');
         });
-        this.log("call func");
+        this.log('call func');
     }
 
     public setFhemValue(value: string): void {
         this.log(`received value: ${value} for ${this.name}`);
-        this.characteristic.setValue(value === "on", undefined, "fhem");
+        this.characteristic.setValue(value === 'on', undefined, 'fhem');
     }
 }
 
 class FhemMotionSensor extends FhemSensor {
 
-    public getDeviceService(): any {
-        var service = new Service.MotionSensor(this.name);
+    public getDeviceServices(): any[] {
+        const service = new Service.MotionSensor(this.name);
         this.characteristic = service.getCharacteristic(Characteristic.MotionDetected);
         this.characteristic
-            .on("get", this.getState.bind(this));
-        return service;
+            .on('get', this.getState.bind(this));
+        return [service];
     }
 }
 
 class FhemContactSensor extends FhemSensor {
 
-    public getDeviceService(): any {
-        var service = new Service.ContactSensor(this.name);
+    public getDeviceServices(): any[] {
+        const service = new Service.ContactSensor(this.name);
         this.characteristic = service.getCharacteristic(Characteristic.ContactSensorState);
         this.characteristic
-            .on("get", this.getState.bind(this));
-        return service;
+            .on('get', this.getState.bind(this));
+        return [service];
     }
 }
 
@@ -310,70 +313,70 @@ class FhemThermostat extends FhemAccessory {
         allSubscriptions[this.tempsensor] ? allSubscriptions[this.tempsensor].push(this) : allSubscriptions[this.tempsensor] = [this];
     }
 
-    public getDeviceService(): any {
-        var service = new Service.Thermostat(this.name);
+    public getDeviceServices(): any[] {
+        const service = new Service.Thermostat(this.name);
         this.currentHeatingCoolingState = service.getCharacteristic(Characteristic.CurrentHeatingCoolingState);
-        this.currentHeatingCoolingState.on("get", this.getHCState.bind(this));
+        this.currentHeatingCoolingState.on('get', this.getHCState.bind(this));
 
         this.targetHeatingCoolingState = service.getCharacteristic(Characteristic.TargetHeatingCoolingState);
-        this.targetHeatingCoolingState.on("get", this.getHCState.bind(this)).on("set", (value: Number, callback, context: string) => { callback(); });
+        this.targetHeatingCoolingState.on('get', this.getHCState.bind(this)).on('set', (value: Number, callback, context: string) => { callback(); });
 
         this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature);
-        this.currentTemperature.on("get", this.getCurrentTemp.bind(this));
+        this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
 
         this.currentRelativeHumidity = service.addCharacteristic(new Characteristic.CurrentRelativeHumidity());
-        this.currentRelativeHumidity.on("get", this.getCurrentHumidity.bind(this));
+        this.currentRelativeHumidity.on('get', this.getCurrentHumidity.bind(this));
 
         this.targetTemperature = service.getCharacteristic(Characteristic.TargetTemperature);
-        this.targetTemperature.on("get", this.getTargetTemp.bind(this)).on("set", this.setTargetTemp.bind(this));
+        this.targetTemperature.on('get', this.getTargetTemp.bind(this)).on('set', this.setTargetTemp.bind(this));
 
         this.temperatureDisplayUnits = service.getCharacteristic(Characteristic.TemperatureDisplayUnits);
-        this.temperatureDisplayUnits.on("get", (cb) => { cb(Characteristic.TemperatureDisplayUnits.CELSIUS) })
-            .on("set", (value: Number, callback, context: string) => { callback(); });
+        this.temperatureDisplayUnits.on('get', (cb) => { cb(Characteristic.TemperatureDisplayUnits.CELSIUS) })
+            .on('set', (value: Number, callback, context: string) => { callback(); });
 
-        return service;
+        return [service];
     }
 
     public getHCState(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, "actorState", status => {
-            callback(null, status === "on" ? Characteristic.CurrentHeatingCoolingState.HEAT : Characteristic.CurrentHeatingCoolingState.OFF);
+        this.getFhemNamedValue(FhemValueType.Readings, 'actorState', status => {
+            callback(null, status === 'on' ? Characteristic.CurrentHeatingCoolingState.HEAT : Characteristic.CurrentHeatingCoolingState.OFF);
         });
     }
 
     public getCurrentTemp(callback): void {
-        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, "temperature", (temp) => {
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature', (temp) => {
             callback(null, Number(temp));
         });
     }
 
     public getCurrentHumidity(callback): void {
-        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, "humidity", (temp) => {
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity', (temp) => {
             callback(null, Number(temp));
         });
     }
 
     public getTargetTemp(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, "desired-temp", temp => {
+        this.getFhemNamedValue(FhemValueType.Readings, 'desired-temp', temp => {
             callback(null, Number(temp));
         });
     }
 
     public setTargetTemp(value: number, callback, context: string): void {
-        if (context !== "fhem")
-            this.setFhemReading("desired-temp", value.toString());
+        if (context !== 'fhem')
+            this.setFhemReading('desired-temp', value.toString());
         callback();
     }
 
     public setFhemValue(reading: string, value: string): void {
-        this.log("received value: " + reading + "." + value + " for " + this.name);
-        if (reading === "temperature") {
-            this.currentTemperature.setValue(Number(value), undefined, "fhem");
+        this.log('received value: ' + reading + '.' + value + ' for ' + this.name);
+        if (reading === 'temperature') {
+            this.currentTemperature.setValue(Number(value), undefined, 'fhem');
         }
-        if (reading === "humidity") {
-            this.currentRelativeHumidity.setValue(Number(value), undefined, "fhem");
+        if (reading === 'humidity') {
+            this.currentRelativeHumidity.setValue(Number(value), undefined, 'fhem');
         }
-        if (reading === "desired-temp") {
-            this.targetTemperature.setValue(Number(value), undefined, "fhem");
+        if (reading === 'desired-temp') {
+            this.targetTemperature.setValue(Number(value), undefined, 'fhem');
         }
     }
 }
@@ -381,23 +384,23 @@ class FhemThermostat extends FhemAccessory {
 class FhemHeatingKW910 extends FhemThermostat {
     public setFhemValue(reading: string, value: string): void {
         super.setFhemValue(reading, value);
-        if (reading === "Code") {
-            var res = this.calcValues(value);
-            this.setFhemReadingForDevice(this.tempsensor, "temperature", res.T.toString(), true);
-            this.setFhemReadingForDevice(this.tempsensor, "humidity", res.H.toString(), true);
-            this.executeCommand("setstate " + this.tempsensor + " T: " + res.T.toString() + " H: " + res.H.toString());
+        if (reading === 'Code') {
+            const res = this.calcValues(value);
+            this.setFhemReadingForDevice(this.tempsensor, 'temperature', res.T.toString(), true);
+            this.setFhemReadingForDevice(this.tempsensor, 'humidity', res.H.toString(), true);
+            this.executeCommand('setstate ' + this.tempsensor + ' T: ' + res.T.toString() + ' H: ' + res.H.toString());
         }
     }
 
     private calcValues(code: string): { T: Number, H: Number } {
-        var bin = Number("0x" + code).toString(2);
+        let bin = Number('0x' + code).toString(2);
         while(bin.length % 8 != 0) {
-            bin = "0" + bin;
+            bin = '0' + bin;
         }
-        var temp = parseInt(bin.substr(12, 11).split("").reverse().join(""), 2);
-        if (bin[23] === "1") temp -= 2048;
+        let temp = parseInt(bin.substr(12, 11).split('').reverse().join(''), 2);
+        if (bin[23] === '1') temp -= 2048;
         temp /= 10;
-        var hum = parseInt(bin.substr(24, 8).split("").reverse().join(""), 2) - 156;
+        const hum = parseInt(bin.substr(24, 8).split('').reverse().join(''), 2) - 156;
         return { T: temp, H: hum };
     }
 }
@@ -406,24 +409,49 @@ class FhemTemperatureSensor extends FhemAccessory {
 
     private currentTemperature: any;
 
-    public getDeviceService(): any {
-        var service = new Service.TemperatureSensor(this.name);
+    public getDeviceServices(): any[] {
+        const service = new Service.TemperatureSensor(this.name);
         this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature);
         this.currentTemperature.setProps({ minValue: -25 });
-        this.currentTemperature.on("get", this.getCurrentTemp.bind(this));
-        return service;
+        this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
+        return [service];
     }
 
     public setFhemValue(reading: string, value: string): void {
-        this.log("received value: " + reading + "." + value + " for " + this.name);
-        if (reading === "temperature") {
-            this.currentTemperature.setValue(Number(value), undefined, "fhem");
+        this.log('received value: ' + reading + '.' + value + ' for ' + this.name);
+        if (reading === 'temperature') {
+            this.currentTemperature.setValue(Number(value), undefined, 'fhem');
         }
     }
 
     public getCurrentTemp(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, "temperature", (temp) => {
+        this.getFhemNamedValue(FhemValueType.Readings, 'temperature', (temp) => {
             callback(null, Number(temp));
+        });
+    }
+}
+
+class FhemTemperatureHumiditySensor extends FhemTemperatureSensor {
+
+    private currentHumidity: any;
+
+    public getDeviceServices(): any[] {
+        const service = new Service.HumiditySensor(this.name);
+        this.currentHumidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity);
+        this.currentHumidity.on('get', this.getCurrentHum.bind(this));
+        return [service].concat(super.getDeviceServices());
+    }
+
+    public setFhemValue(reading: string, value: string): void {
+        this.log('received value: ' + reading + '.' + value + ' for ' + this.name);
+        if (reading === 'humidity') {
+            this.currentHumidity.setValue(Number(value), undefined, 'fhem');
+        }
+    }
+
+    public getCurrentHum(callback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, 'humidity', (hum) => {
+            callback(null, Number(hum));
         });
     }
 }
@@ -431,24 +459,24 @@ class FhemTemperatureSensor extends FhemAccessory {
 class FhemTempKW9010 extends FhemTemperatureSensor {
     public setFhemValue(reading: string, value: string): void {
         super.setFhemValue(reading, value);
-        if (reading === "Code") {
-            var res = this.calcValues(value);
-            this.setFhemReading("temperature", res.T.toString());
-            this.setFhemReadingForDevice(this.fhemName, "temperature", res.T.toString(), true);
-            this.setFhemReadingForDevice(this.fhemName, "humidity", res.H.toString(), true);
-            this.executeCommand("setstate " + this.fhemName + " T: " + res.T.toString() + " H: " + res.H.toString());
+        if (reading === 'Code') {
+            const res = this.calcValues(value);
+            this.setFhemReading('temperature', res.T.toString());
+            this.setFhemReadingForDevice(this.fhemName, 'temperature', res.T.toString(), true);
+            this.setFhemReadingForDevice(this.fhemName, 'humidity', res.H.toString(), true);
+            this.executeCommand('setstate ' + this.fhemName + ' T: ' + res.T.toString() + ' H: ' + res.H.toString());
         }
     }
 
     private calcValues(code: string): { T: Number, H: Number } {
-        var bin = Number("0x" + code).toString(2);
+        let bin = Number('0x' + code).toString(2);
         while (bin.length % 8 != 0) {
-            bin = "0" + bin;
+            bin = '0' + bin;
         }
-        var temp = parseInt(bin.substr(12, 11).split("").reverse().join(""), 2);
-        if (bin[23] === "1") temp -= 2048;
+        let temp = parseInt(bin.substr(12, 11).split('').reverse().join(''), 2);
+        if (bin[23] === '1') temp -= 2048;
         temp /= 10;
-        var hum = parseInt(bin.substr(24, 8).split("").reverse().join(""), 2) - 156;
+        const hum = parseInt(bin.substr(24, 8).split('').reverse().join(''), 2) - 156;
         return { T: temp, H: hum };
     }
 }
@@ -459,73 +487,74 @@ class FhemWindowCovering extends FhemAccessory {
     private positionState;
 
     setFhemValue(value: string, part2?: string): void {
-        if (value === "down") {
-            this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, "fhem");
-        } else if (value === "up") {
-            this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, "fhem");
-        } else if (value === "stop") {
-            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
-        } else if (value === "open_ack") {
-            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
-            this.currentPosition.setValue(100, undefined, "fhem");
-        } else if (value === "closed") {
-            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, "fhem");
-            this.currentPosition.setValue(0, undefined, "fhem");
+        if (value === 'down') {
+            this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, 'fhem');
+        } else if (value === 'up') {
+            this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, 'fhem');
+        } else if (value === 'stop') {
+            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, 'fhem');
+        } else if (value === 'open_ack') {
+            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, 'fhem');
+            this.currentPosition.setValue(100, undefined, 'fhem');
+        } else if (value === 'closed') {
+            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, 'fhem');
+            this.currentPosition.setValue(0, undefined, 'fhem');
         }
-        if (value === "position") {
-            this.targetPosition.setValue(100 - Number(part2), undefined, "fhem");
+        if (value === 'position') {
+            this.targetPosition.setValue(100 - Number(part2), undefined, 'fhem');
             this.getFhemStatus((status) => {
-                if (status === "stop") {
-                    this.currentPosition.setValue(100 - Number(part2), undefined, "fhem");
+                if (status === 'stop') {
+                    this.currentPosition.setValue(100 - Number(part2), undefined, 'fhem');
                 }
             });
         }    
     }
 
-    getDeviceService() {
-        var service = new Service.WindowCovering(this.name);
+    getDeviceServices(): any[] {
+        const service = new Service.WindowCovering(this.name);
         this.currentPosition = service.getCharacteristic(Characteristic.CurrentPosition);
-        this.currentPosition.on("get", this.getCurrentPosition.bind(this));
+        this.currentPosition.on('get', this.getCurrentPosition.bind(this));
 
         this.targetPosition = service.getCharacteristic(Characteristic.TargetPosition);
-        this.targetPosition.on("get", this.getCurrentPosition.bind(this)).on("set", this.setTargetPosition.bind(this));
+        this.targetPosition.on('get', this.getCurrentPosition.bind(this)).on('set', this.setTargetPosition.bind(this));
 
         this.positionState = service.getCharacteristic(Characteristic.PositionState);
-        this.positionState.on("get", this.getPositionState.bind(this));
-        return service;
+        this.positionState.on('get', this.getPositionState.bind(this));
+        return [service];
     }
 
     public getCurrentPosition(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, "position", (pos) => {
+        this.getFhemNamedValue(FhemValueType.Readings, 'position', (pos) => {
             callback(null, 100 - Number(pos));
         });
     }
 
     public getPositionState(callback): void {
         this.getFhemStatus((status) => {
-            if (status === "down" || status === "closes") callback(null, Characteristic.PositionState.INCREASING);
-            else if (status === "up" || status === "opens") callback(null, Characteristic.PositionState.DECREASING);
+            if (status === 'down' || status === 'closes') callback(null, Characteristic.PositionState.INCREASING);
+            else if (status === 'up' || status === 'opens') callback(null, Characteristic.PositionState.DECREASING);
             else callback(null, Characteristic.PositionState.STOPPED);
         });
     }
 
     public setTargetPosition(value: number, callback, context: string): void {
-        if (context !== "fhem") {
-            if (value === 100) this.setFhemStatus("opens");
-            else if (value === 0) this.setFhemStatus("closes");
-            else this.setFhemReading("position", (100 - value).toString());
+        if (context !== 'fhem') {
+            if (value === 100) this.setFhemStatus('opens');
+            else if (value === 0) this.setFhemStatus('closes');
+            else this.setFhemReading('position', (100 - value).toString());
         }
         callback();
     }
 }
 
-accessoryTypes["heating"] = FhemThermostat;
-accessoryTypes["heatingKW9010"] = FhemHeatingKW910;
-accessoryTypes["switch"] = FhemSwitch;
-accessoryTypes["lightbulb"] = FhemLightbulb;
-accessoryTypes["motionsensor"] = FhemMotionSensor;
-accessoryTypes["contactsensor"] = FhemContactSensor;
-accessoryTypes["temperaturesensor"] = FhemTemperatureSensor;
-accessoryTypes["tempKW9010"] = FhemTempKW9010;
-accessoryTypes["outlet"] = FhemOutlet;
-accessoryTypes["windowcovering"] = FhemWindowCovering;
+accessoryTypes['heating'] = FhemThermostat;
+accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
+accessoryTypes['switch'] = FhemSwitch;
+accessoryTypes['lightbulb'] = FhemLightbulb;
+accessoryTypes['motionsensor'] = FhemMotionSensor;
+accessoryTypes['contactsensor'] = FhemContactSensor;
+accessoryTypes['temperaturesensor'] = FhemTemperatureSensor;
+accessoryTypes['temperaturehumiditysensor'] = FhemTemperatureHumiditySensor;
+accessoryTypes['tempKW9010'] = FhemTempKW9010;
+accessoryTypes['outlet'] = FhemOutlet;
+accessoryTypes['windowcovering'] = FhemWindowCovering;
