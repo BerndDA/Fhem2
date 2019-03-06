@@ -111,7 +111,7 @@ abstract class FhemAccessory {
     fhemName: string;
     baseUrl: string;
 
-    protected constructor(data, log, baseUrl: string) {
+    constructor(data, log, baseUrl: string) { 
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
