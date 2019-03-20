@@ -2,6 +2,10 @@
   "name": "homebridge-fhem2",
   "version": "0.0.1",
   "description": "FHEM plugin for homebridge: https://github.com/nfarina/homebridge",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BerndDA/Fhem2.git"
+  },
   "license": "ISC",
   "keywords": [
     "homebridge-plugin"
@@ -11,9 +15,9 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "typescript": "^1.5.0-beta"
+    "typescript": ">=2.1.6"
   },
   "scripts": {
-    "install": "node node_modules/typescript/bin/tsc --module commonjs index.ts -t ES5"
+    "install": "tsc"
   }
 }
