@@ -13,7 +13,8 @@ var Service, Characteristic;
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
-
+    //Add missing auto mode constant
+    Characteristic.CurrentHeatingCoolingState.AUTO = 3;
     homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform);
 };
 
@@ -381,6 +382,100 @@ class FhemThermostat extends FhemAccessory {
     }
 }
 
+class FhemEqivaThermostat extends FhemAccessory {
+
+    private currentHeatingCoolingState;
+    private targetHeatingCoolingState;
+    private currentTemperature;
+    private targetTemperature;
+    private temperatureDisplayUnits;
+    private currentRelativeHumidity;
+    protected tempsensor: string;
+    
+    constructor(data, log, baseUrl: string) {
+        super(data, log, baseUrl);
+        //register on tempsensor
+        this.tempsensor = this.data.Attributes.tempsensor;
+        allSubscriptions[this.tempsensor] ? allSubscriptions[this.tempsensor].push(this) : allSubscriptions[this.tempsensor] = [this];
+    }
+
+    public getDeviceServices(): any[] {
+        const service = new Service.Thermostat(this.name);
+        this.currentHeatingCoolingState = service.getCharacteristic(Characteristic.CurrentHeatingCoolingState);
+        this.currentHeatingCoolingState.on('get', this.getHCState.bind(this));
+
+        this.targetHeatingCoolingState = service.getCharacteristic(Characteristic.TargetHeatingCoolingState);
+        this.targetHeatingCoolingState.on('get', this.getHCState.bind(this)).on('set',  this.setHCState.bind(this));
+
+        this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature);
+        this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
+
+        this.currentRelativeHumidity = service.addCharacteristic(new Characteristic.CurrentRelativeHumidity());
+        this.currentRelativeHumidity.on('get', this.getCurrentHumidity.bind(this));
+
+        this.targetTemperature = service.getCharacteristic(Characteristic.TargetTemperature);
+        this.targetTemperature.on('get', this.getTargetTemp.bind(this)).on('set', this.setTargetTemp.bind(this));
+
+        this.temperatureDisplayUnits = service.getCharacteristic(Characteristic.TemperatureDisplayUnits);
+        this.temperatureDisplayUnits.on('get', (cb) => { cb(Characteristic.TemperatureDisplayUnits.CELSIUS) })
+            .on('set', (value: Number, callback, context: string) => { callback(); });
+
+        return [service];
+    }
+
+    public getHCState(callback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature', temp => {
+            callback(null, Number(temp) > 4.5 ? Characteristic.CurrentHeatingCoolingState.AUTO : Characteristic.CurrentHeatingCoolingState.OFF);
+        });
+    }
+
+    public getCurrentTemp(callback): void {
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature', (temp) => {
+            callback(null, Number(temp));
+        });
+    }
+
+    public getCurrentHumidity(callback): void {
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity', (temp) => {
+            callback(null, Number(temp));
+        });
+    }
+
+    public getTargetTemp(callback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature', temp => {
+            callback(null, Number(temp));
+        });
+    }
+
+    public setTargetTemp(value: number, callback, context: string): void {
+        if (context !== 'fhem')
+            this.setFhemReading('desiredTemperature', value.toString());
+        callback();
+    }
+
+    public setHCState(value: number, callback, context: string): void {
+        if (context !== 'fhem')
+            this.setFhemReading('desiredTemperature', value === Characteristic.CurrentHeatingCoolingState.OFF ? '4.5' : '18.0');
+        callback();
+    } 
+     
+    public setFhemValue(reading: string, value: string): void {
+        this.log('received value: ' + reading + '.' + value + ' for ' + this.name);
+        if (reading === 'temperature') {
+            this.currentTemperature.setValue(Number(value), undefined, 'fhem');
+        }
+        if (reading === 'humidity') {
+            this.currentRelativeHumidity.setValue(Number(value), undefined, 'fhem');
+        }
+        if (reading === 'desiredTemperature') {
+            this.targetTemperature.setValue(Number(value), undefined, 'fhem');
+            this.currentHeatingCoolingState.setValue(
+                Number(value) > 4.5 ? Characteristic.CurrentHeatingCoolingState.AUTO
+                : Characteristic.CurrentHeatingCoolingState.OFF, undefined, 'fhem');
+        }
+    }
+}
+
 class FhemHeatingKW910 extends FhemThermostat {
     public setFhemValue(reading: string, value: string): void {
         super.setFhemValue(reading, value);
@@ -549,6 +644,7 @@ class FhemWindowCovering extends FhemAccessory {
 
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
+accessoryTypes['heatingEQ3'] = FhemEqivaThermostat;
 accessoryTypes['switch'] = FhemSwitch;
 accessoryTypes['lightbulb'] = FhemLightbulb;
 accessoryTypes['motionsensor'] = FhemMotionSensor;

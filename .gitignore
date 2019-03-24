@@ -39,3 +39,4 @@ node_modules
 /FHEM_Homebridge.sln.DotSettings.user
 /FHEM_Homebridge.sln
 /FHEM_Homebridge.njsproj
+/package-lock.json
