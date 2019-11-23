@@ -1,6 +1,5 @@
 ﻿/// <reference path="./Scripts/typings/node/node.d.ts" />
 
-import util = require('util');
 import http = require('http');
 import dns = require('dns');
 import os = require('os');
@@ -95,6 +94,9 @@ class Fhem2Platform {
                 for (let i = 0; i < devicelist.Results.length; i++) {
                     const device = devicelist.Results[i];
                     if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
+                    //TODO
+                    if (device.Attributes.homebridgeType !== 'progswitch' && device.Attributes.homebridgeType !== 'lightbulb') continue;
+
                     acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
                 }
                 callback(acc);
@@ -642,6 +644,176 @@ class FhemWindowCovering extends FhemAccessory {
     }
 }
 
+class FhemProgSwitch extends FhemAccessory {
+
+    private switchEvent = {};
+    private static channels = ['A0', 'AI', 'B0', 'BI'];
+    private services = new Array();
+    private buttons = {};
+
+    getDeviceServices(): any[] {
+        for (let name of FhemProgSwitch.channels) {
+
+            var service = new Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
+            this.switchEvent[name] = service.getCharacteristic(Characteristic.ProgrammableSwitchEvent);
+            this.buttons[name] = new ButtonStateMachine(() => {
+                this.switchEvent[name].setValue(Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS, undefined, 'fhem');
+            }, () => {
+                this.switchEvent[name].setValue(Characteristic.ProgrammableSwitchEvent.LONG_PRESS, undefined, 'fhem');
+            }, () => {
+                this.switchEvent[name].setValue(Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS, undefined, 'fhem');
+            });
+            this.services.push(service);
+        }
+
+
+        return this.services; 
+    }
+
+    setFhemValue(value: string, part2?: string): void {
+        const buttons = this.buttons;
+        if (part2 === 'released')
+            for (let id in buttons) {
+                if (buttons.hasOwnProperty(id)) {
+                    this.buttons[id].setReleased();
+                }
+            }
+        if (FhemProgSwitch.channels.indexOf(value) > -1)
+            buttons[value].setPressed();
+    }
+}
+
+class ButtonStateMachine {
+
+    private isPressed: boolean = false;
+    private waitDouble: boolean = false;
+    private static milliWait = 800;
+    private onShortPress: () => void;
+    private onLongPress: () => void;
+    private onDoublePress: () => void;
+
+    constructor(shortPress: () => void, longPress: () => void, doublePress: () => void) {
+        this.onShortPress = shortPress;
+        this.onLongPress = longPress;
+        this.onDoublePress = doublePress;
+    }
+
+    public setPressed(): void {
+        this.isPressed = true;
+        setTimeout(() => {
+            if (this.isPressed) this.onLongPress();
+            this.isPressed = false;
+        }, ButtonStateMachine.milliWait);
+    }
+
+    public setReleased(): void {
+        if (this.waitDouble) {
+            this.onDoublePress();
+            this.waitDouble = false;
+        }
+        else if (this.isPressed) {
+            this.onShortPress();
+            this.waitDouble = true;
+            setTimeout(() => {
+                this.waitDouble = false;
+            }, ButtonStateMachine.milliWait);
+        }
+        this.isPressed = false;
+    }
+
+}
+
+class FhemTvTest extends FhemAccessory {
+    private active;
+    private activeIdentifier;
+    private configuredName;
+    private sleepDiscoveryMode;
+    private mute;
+
+    setFhemValue(value: string, part2?: string): void {
+        
+    }
+
+    getDeviceServices(): any[] {
+        const service = new Service.Television(this.name);
+        this.active = service.getCharacteristic(Characteristic.Active);
+        this.active.on('get', (cb) => {
+            cb(null, Characteristic.Active.ACTIVE);
+        });
+        this.active.on('set', (value: Number, cb) => { cb(); });
+        //this.currentPosition.on('get', this.getCurrentPosition.bind(this));
+
+        this.activeIdentifier = service.getCharacteristic(Characteristic.ActiveIdentifier);
+        this.activeIdentifier.on('get', (cb) => {
+            cb(null, 1);
+        });
+        this.activeIdentifier.on('set', (value: Number, cb) => { cb(); });
+
+        this.configuredName = service.getCharacteristic(Characteristic.ConfiguredName);
+        this.configuredName.on('get', (cb) => { cb(null,'lametr') });
+        this.configuredName.on('set', (value, cb) => { cb() });
+
+        this.sleepDiscoveryMode = service.getCharacteristic(Characteristic.SleepDiscoveryMode);
+        this.sleepDiscoveryMode.on('get', (cb) => { cb(null,Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE) });
+
+        const volService = new Service.TelevisionSpeaker(this.name + "volume", "volService");
+        this.mute = volService.getCharacteristic(Characteristic.Mute);
+        this.mute.on('get', (cb) => { cb(null, false) }).on('set', (value, cb) => { cb() });
+        volService.getCharacteristic(Characteristic.Active).on('get', (cb) => { cb(null, Characteristic.Active.ACTIVE) })
+            .on('set', (value: Number, cb) => { cb(); });
+
+        volService.getCharacteristic(Characteristic.Volume).on('get', (cb) => { cb(null, 30) })
+            .on('set', (value: Number, cb) => { cb(); });
+
+        
+
+        var input1 = new Service.InputSource("chann1", "Channel 1");
+        input1.getCharacteristic(Characteristic.ConfiguredName).on('get', (cb) => { cb(null, 'You FM') }).on('set', (value, cb) => { cb() });
+        input1.getCharacteristic(Characteristic.InputSourceType).on('get', (cb) => { cb(null, Characteristic.InputSourceType.TUNER) });
+        input1.getCharacteristic(Characteristic.IsConfigured).on('get', (cb) => {
+            cb(null, Characteristic.IsConfigured.CONFIGURED);
+        }).on('set', (value, cb) => { cb() });
+        input1.getCharacteristic(Characteristic.CurrentVisibilityState).on('get', (cb) => { cb(null, Characteristic.CurrentVisibilityState.SHOWN) });
+        input1.getCharacteristic(Characteristic.Identifier).on('get', (cb) => { cb(null, Number(0)) });
+
+        var input2 = new Service.InputSource("chann2", "Channel 2");
+        input2.getCharacteristic(Characteristic.ConfiguredName).on('get', (cb) => { cb(null, 'You FMddd') }).on('set', (value, cb) => { cb() });
+        input2.getCharacteristic(Characteristic.InputSourceType).on('get', (cb) => { cb(null, Characteristic.InputSourceType.TUNER) });
+        input2.getCharacteristic(Characteristic.IsConfigured).on('get', (cb) => {
+            cb(null, Characteristic.IsConfigured.CONFIGURED);
+        }).on('set', (value, cb) => { cb() });
+        input2.getCharacteristic(Characteristic.CurrentVisibilityState).on('get', (cb) => { cb(null, Characteristic.CurrentVisibilityState.SHOWN) });
+        input2.getCharacteristic(Characteristic.Identifier).on('get', (cb) => { cb(null, Number(1)) });
+
+        //service.addLinkedService(volService);
+        //service.addLinkedService(input1);
+        //service.addLinkedService(input2);
+        return [service, volService, input1, input2];
+    }
+
+    public getCurrentPosition(callback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, 'position', (pos) => {
+            callback(null, 100 - Number(pos));
+        });
+    }
+
+    public getPositionState(callback): void {
+        this.getFhemStatus((status) => {
+            if (status === 'down' || status === 'closes') callback(null, Characteristic.PositionState.INCREASING);
+            else if (status === 'up' || status === 'opens') callback(null, Characteristic.PositionState.DECREASING);
+            else callback(null, Characteristic.PositionState.STOPPED);
+        });
+    }
+
+    public setTargetPosition(value: number, callback, context: string): void {
+        if (context !== 'fhem') {
+            if (value === 100) this.setFhemStatus('opens');
+            else if (value === 0) this.setFhemStatus('closes');
+            else this.setFhemReading('position', (100 - value).toString());
+        }
+        callback();
+    }
+}
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
 accessoryTypes['heatingEQ3'] = FhemEqivaThermostat;
@@ -654,3 +826,5 @@ accessoryTypes['temperaturehumiditysensor'] = FhemTemperatureHumiditySensor;
 accessoryTypes['tempKW9010'] = FhemTempKW9010;
 accessoryTypes['outlet'] = FhemOutlet;
 accessoryTypes['windowcovering'] = FhemWindowCovering;
+accessoryTypes['tvtest'] = FhemTvTest;
+accessoryTypes['progswitch'] = FhemProgSwitch;
