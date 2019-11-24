@@ -94,8 +94,8 @@ class Fhem2Platform {
                 for (let i = 0; i < devicelist.Results.length; i++) {
                     const device = devicelist.Results[i];
                     if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
-                    //TODO
-                    if (device.Attributes.homebridgeType !== 'progswitch' && device.Attributes.homebridgeType !== 'lightbulb') continue;
+                    
+                    //if (device.Attributes.homebridgeType !== 'progswitch' && device.Attributes.homebridgeType !== 'lightbulb' && device.Attributes.homebridgeType !== 'updownswitch') continue;
 
                     acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
                 }
@@ -202,6 +202,43 @@ abstract class FhemAccessory {
     public identify(callback) {
         this.log('Identify requested!');
         callback(); // success
+    }
+}
+
+class FhemDoubleTapSwitch extends FhemAccessory {
+
+    private characteristicUp: any;
+    private characteristicDown:any;
+
+    setFhemValue(value: string, part2?: string): void {  }
+
+    getDeviceServices(): any[] {
+        const sUp = new Service.Switch("up", "up");
+        this.characteristicUp = sUp.getCharacteristic(Characteristic.On).on("get", (cb) => cb(false)).on("set", this.setUpState.bind(this));
+        const sDown = new Service.Switch("down", "down");
+        this.characteristicDown = sDown.getCharacteristic(Characteristic.On).on("get", (cb) => cb(false)).on("set", this.setDownState.bind(this));
+
+        return [sUp, sDown];
+    }
+
+    public setUpState(value: boolean, callback, context: string): void {
+        if (context !== 'fhem' && value) {
+            this.setFhemStatus("on");
+            setTimeout(() => {
+                this.characteristicUp.setValue(false, undefined, 'fhem');
+            }, 100);
+        }
+        callback();
+    }
+
+    public setDownState(value: boolean, callback, context: string): void {
+        if (context !== 'fhem' && value) {
+            this.setFhemStatus("off");
+            setTimeout(() => {
+                this.characteristicDown.setValue(false, undefined, 'fhem');
+            }, 100);
+        }
+        callback();
     }
 }
 
@@ -828,3 +865,4 @@ accessoryTypes['outlet'] = FhemOutlet;
 accessoryTypes['windowcovering'] = FhemWindowCovering;
 accessoryTypes['tvtest'] = FhemTvTest;
 accessoryTypes['progswitch'] = FhemProgSwitch;
+accessoryTypes['updownswitch'] = FhemDoubleTapSwitch;
