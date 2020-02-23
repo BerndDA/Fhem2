@@ -20,7 +20,7 @@ module.exports = function (homebridge) {
 interface IConfig {
     server: string;
     port: number;
-    filter: string;
+    filter: string[];
     ssl: boolean;
 }
 
@@ -34,7 +34,7 @@ class Fhem2Platform {
     log: (msg: string) => void;
     server: string;
     port: number;
-    filter: string;
+    filter: string[];
     baseUrl: string;
 
     constructor(log, config: IConfig) {
@@ -78,8 +78,7 @@ class Fhem2Platform {
 
     public accessories(callback): void {
         let cmd = 'jsonlist2';
-        if (this.filter)
-            cmd += ' ' + this.filter;
+        
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
 
         http.get(url, (response) => {
@@ -95,7 +94,7 @@ class Fhem2Platform {
                     const device = devicelist.Results[i];
                     if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
                     
-                    //if (device.Attributes.homebridgeType !== 'progswitch' && device.Attributes.homebridgeType !== 'lightbulb' && device.Attributes.homebridgeType !== 'updownswitch') continue;
+                    if (this.filter.length !== 0 && !this.filter.includes(device.Attributes.homebridgeType)) continue;
 
                     acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
                 }
@@ -214,9 +213,11 @@ class FhemDoubleTapSwitch extends FhemAccessory {
 
     getDeviceServices(): any[] {
         const sUp = new Service.Switch("up", "up");
-        this.characteristicUp = sUp.getCharacteristic(Characteristic.On).on("get", (cb) => cb(false)).on("set", this.setUpState.bind(this));
+        this.characteristicUp = sUp.getCharacteristic(Characteristic.On).on("get", (cb) => cb(null, false))
+            .on("set", this.setUpState.bind(this));
         const sDown = new Service.Switch("down", "down");
-        this.characteristicDown = sDown.getCharacteristic(Characteristic.On).on("get", (cb) => cb(false)).on("set", this.setDownState.bind(this));
+        this.characteristicDown = sDown.getCharacteristic(Characteristic.On).on("get", (cb) => cb(null, true))
+            .on("set", this.setDownState.bind(this));
 
         return [sUp, sDown];
     }
@@ -232,10 +233,10 @@ class FhemDoubleTapSwitch extends FhemAccessory {
     }
 
     public setDownState(value: boolean, callback, context: string): void {
-        if (context !== 'fhem' && value) {
+        if (context !== 'fhem' && !value) {
             this.setFhemStatus("off");
             setTimeout(() => {
-                this.characteristicDown.setValue(false, undefined, 'fhem');
+                this.characteristicDown.setValue(true, undefined, 'fhem');
             }, 100);
         }
         callback();
@@ -822,9 +823,9 @@ class FhemTvTest extends FhemAccessory {
         input2.getCharacteristic(Characteristic.CurrentVisibilityState).on('get', (cb) => { cb(null, Characteristic.CurrentVisibilityState.SHOWN) });
         input2.getCharacteristic(Characteristic.Identifier).on('get', (cb) => { cb(null, Number(1)) });
 
-        //service.addLinkedService(volService);
-        //service.addLinkedService(input1);
-        //service.addLinkedService(input2);
+        service.addLinkedService(volService);
+        service.addLinkedService(input1);
+        service.addLinkedService(input2);
         return [service, volService, input1, input2];
     }
 
