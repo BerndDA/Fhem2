@@ -1,15 +1,20 @@
-﻿/// <reference path="./Scripts/typings/node/node.d.ts" />
+﻿/// <reference types="node" />
+/// <reference types="axios" />
 
 import http = require('http');
+import axios from 'axios';
+
 import dns = require('dns');
 import os = require('os');
+
 
 var allSubscriptions: { [name: string]: FhemAccessory[] } = {};
 var accessoryTypes: { [name: string]: any } = {};
 
-var Service, Characteristic;
+let Service, Characteristic;
 
-module.exports = function (homebridge) {
+
+export default function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
     //Add missing auto mode constant
@@ -51,19 +56,20 @@ class Fhem2Platform {
         this.subscribeToFhem();
     }
 
-    private subscribeToFhem() {
-        //delete the notification
-        var url = encodeURI(this.baseUrl + '/fhem?cmd=delete nfHomekitdev&XHR=1');
-        http.get(url, () => {
-            //create notification
-            dns.lookup(os.hostname(), (err, add, fam) => {
-                var command =
-                    encodeURIComponent(`define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${add}:2000/$NAME/$new", callback=>sub($$$){} })}`);
-                url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
-                http.get(url);
-            });
-        });
+    private async subscribeToFhem() {
+        try {
+            //delete the notification
+            var url = encodeURI(this.baseUrl + '/fhem?cmd=delete nfHomekitdev&XHR=1');
+            await axios.get(url);
 
+            const address = await dns.promises.resolve4(os.hostname());
+            var command =
+                encodeURIComponent(`define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${address[0]}:2000/$NAME/$new", callback=>sub($$$){} })}`);
+            url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
+            await axios.get(url);
+        } catch (e) {
+            this.log(e);
+        }
         http.createServer((req, res) => {
             res.end('ok'); 
             var splitted = req.url.toString().split('/');
@@ -76,33 +82,28 @@ class Fhem2Platform {
         }).listen(2000);
     }
 
-    public accessories(callback): void {
+    public accessories(cb) {
+        this.compileAccessories().then(res => cb(res))
+            .catch(e => this.log(e));
+    }
+
+    private async compileAccessories() {
         let cmd = 'jsonlist2';
         
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
 
-        http.get(url, (response) => {
-            response.setEncoding('utf8');
-            var data = '';
-            response.on('data', (chunk) => {
-                data += chunk;
-            });
-            response.on('end', () => {
-                var devicelist = JSON.parse(data);
-                var acc = [];
-                for (let i = 0; i < devicelist.Results.length; i++) {
-                    const device = devicelist.Results[i];
-                    if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
-                    
-                    if (this.filter.length !== 0 && !this.filter.includes(device.Attributes.homebridgeType)) continue;
+        var response = await axios.get(url);
+        var devicelist = response.data;
+        var acc = [];
+        for (let i = 0; i < devicelist.Results.length; i++) {
+            const device = devicelist.Results[i];
+            if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
 
-                    acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
-                }
-                callback(acc);
-            });
-        }).on('error', (e) => {
-            this.log('error in request to FHEM');
-        });
+            if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) !== -1) continue;
+
+            acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
+        }
+        return acc;
     }
 }
 
@@ -144,36 +145,26 @@ abstract class FhemAccessory {
 
     protected executeCommand(cmd: string): void {
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-        http.get(url).on('error', (e) => {
-            this.log('error executing: ' + cmd +' ' + e);
-        });
+        axios.get(url).catch(e => this.log('error executing: ' + cmd + ' ' + e));
+        
     }
 
-    protected getFhemStatus(callback: (string) => void): void {
-        this.getFhemNamedValue(FhemValueType.Internals, 'STATE', callback);
+    protected async getFhemStatus(): Promise<string> {
+        return this.getFhemNamedValue(FhemValueType.Internals, 'STATE');
     }
 
-    protected getFhemNamedValue(fhemType: FhemValueType, name: string, callback: (string) => void): void {
-        this.getFhemNamedValueForDevice(this.fhemName, fhemType, name, callback);
+    protected async getFhemNamedValue(fhemType: FhemValueType, name: string): Promise<string> {
+        return this.getFhemNamedValueForDevice(this.fhemName, fhemType, name);
     }
 
-    protected getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string, callback: (string) => void): void {
+    protected async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string> {
         var url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
-        http.get(url, (response) => {
-            response.setEncoding('utf8');
-            response.on('data', (chunk) => {
-                var devicelist = JSON.parse(chunk);
-                if (devicelist.Results.length > 0) {
-                    const val = devicelist.Results[0][FhemValueType[fhemType]][name];
-                    callback(val.Value ? val.Value : val);
-                    return;
-                }
-                callback(null);
-            });
-        }).on('error', (e) => {
-            this.log('error executing: ' + url + e);
-            callback(null);
-        });
+        var response = await axios.get(url);
+        if (response.data.Results.length > 0) {
+            const val = response.data.Results[0][FhemValueType[fhemType]][name];
+            return val.Value ? val.Value : val;
+        }
+        return null;
     }
 
     public abstract setFhemValue(value: string, part2?: string): void;
@@ -248,9 +239,9 @@ abstract class FhemOnOffSwitchable extends FhemAccessory {
     characteristic: any;
 
     public getPowerState(callback): void {
-        this.getFhemStatus(status => {
-            callback(null, status === 'on');
-        });
+        this.getFhemStatus().then(status =>
+            callback(null, status === 'on')
+        );
     }
 
     public setPowerState(value: boolean, callback, context: string): void {
@@ -303,10 +294,7 @@ abstract class FhemSensor extends FhemAccessory {
     protected characteristic: any;
 
     public getState(callback): void {
-        this.getFhemStatus(status => {
-            callback(null, status === 'on');
-        });
-        this.log('call func');
+        this.getFhemStatus().then(status => callback(null, status === 'on'));
     }
 
     public setFhemValue(value: string): void {
@@ -379,27 +367,27 @@ class FhemThermostat extends FhemAccessory {
     }
 
     public getHCState(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'actorState', status => {
-            callback(null, status === 'on' ? Characteristic.CurrentHeatingCoolingState.HEAT : Characteristic.CurrentHeatingCoolingState.OFF);
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'actorState').then(status =>
+            callback(null, status === 'on' ? Characteristic.CurrentHeatingCoolingState.HEAT : Characteristic.CurrentHeatingCoolingState.OFF)
+        );
     }
 
     public getCurrentTemp(callback): void {
-        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature', (temp) => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature').then(temp => 
+            callback(null, Number(temp))
+        );
     }
 
     public getCurrentHumidity(callback): void {
-        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity', (temp) => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity').then(temp => 
+            callback(null, Number(temp))
+        );
     }
 
     public getTargetTemp(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'desired-temp', temp => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'desired-temp').then(temp => 
+            callback(null, Number(temp))
+        );
     }
 
     public setTargetTemp(value: number, callback, context: string): void {
@@ -464,27 +452,27 @@ class FhemEqivaThermostat extends FhemAccessory {
     }
 
     public getHCState(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature', temp => {
-            callback(null, Number(temp) > 4.5 ? Characteristic.CurrentHeatingCoolingState.AUTO : Characteristic.CurrentHeatingCoolingState.OFF);
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature').then( temp => 
+            callback(null, Number(temp) > 4.5 ? Characteristic.CurrentHeatingCoolingState.AUTO : Characteristic.CurrentHeatingCoolingState.OFF)
+        );
     }
 
     public getCurrentTemp(callback): void {
-        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature', (temp) => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'temperature').then( (temp) => 
+            callback(null, Number(temp))
+        );
     }
 
     public getCurrentHumidity(callback): void {
-        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity', (temp) => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValueForDevice(this.tempsensor, FhemValueType.Readings, 'humidity').then( (temp) => 
+            callback(null, Number(temp))
+        );
     }
 
     public getTargetTemp(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature', temp => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature').then( temp => 
+            callback(null, Number(temp))
+        );
     }
 
     public setTargetTemp(value: number, callback, context: string): void {
@@ -560,9 +548,9 @@ class FhemTemperatureSensor extends FhemAccessory {
     }
 
     public getCurrentTemp(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'temperature', (temp) => {
-            callback(null, Number(temp));
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'temperature').then( (temp) => 
+            callback(null, Number(temp))
+        );
     }
 }
 
@@ -585,9 +573,9 @@ class FhemTemperatureHumiditySensor extends FhemTemperatureSensor {
     }
 
     public getCurrentHum(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'humidity', (hum) => {
-            callback(null, Number(hum));
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'humidity').then( (hum) => 
+            callback(null, Number(hum))
+        );
     }
 }
 
@@ -637,7 +625,7 @@ class FhemWindowCovering extends FhemAccessory {
         }
         if (value === 'position') {
             this.targetPosition.setValue(100 - Number(part2), undefined, 'fhem');
-            this.getFhemStatus((status) => {
+            this.getFhemStatus().then((status) => {
                 if (status === 'stop') {
                     this.currentPosition.setValue(100 - Number(part2), undefined, 'fhem');
                 }
@@ -659,13 +647,13 @@ class FhemWindowCovering extends FhemAccessory {
     }
 
     public getCurrentPosition(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'position', (pos) => {
-            callback(null, 100 - Number(pos));
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'position').then( (pos) => 
+            callback(null, 100 - Number(pos))
+        );
     }
 
     public getPositionState(callback): void {
-        this.getFhemStatus((status) => {
+        this.getFhemStatus().then((status) => {
             if (status === 'down' || status === 'closes') callback(null, Characteristic.PositionState.INCREASING);
             else if (status === 'up' || status === 'opens') callback(null, Characteristic.PositionState.DECREASING);
             else callback(null, Characteristic.PositionState.STOPPED);
@@ -830,13 +818,13 @@ class FhemTvTest extends FhemAccessory {
     }
 
     public getCurrentPosition(callback): void {
-        this.getFhemNamedValue(FhemValueType.Readings, 'position', (pos) => {
-            callback(null, 100 - Number(pos));
-        });
+        this.getFhemNamedValue(FhemValueType.Readings, 'position').then( (pos) => 
+            callback(null, 100 - Number(pos))
+        );
     }
 
     public getPositionState(callback): void {
-        this.getFhemStatus((status) => {
+        this.getFhemStatus().then((status) => {
             if (status === 'down' || status === 'closes') callback(null, Characteristic.PositionState.INCREASING);
             else if (status === 'up' || status === 'opens') callback(null, Characteristic.PositionState.DECREASING);
             else callback(null, Characteristic.PositionState.STOPPED);

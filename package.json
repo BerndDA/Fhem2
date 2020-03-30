@@ -15,7 +15,9 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "typescript": "3.6"
+    "@types/node": "^13.9.5",
+    "axios": "^0.19.2",
+    "typescript": "^3.8.0"
   },
   "scripts": {
     "install": "tsc"
