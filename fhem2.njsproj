@@ -52,6 +52,10 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="broker.ts" />
+    <TypeScriptCompile Include="fhemclient.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="index.ts" />
     <TypeScriptCompile Include="util\promiseHttpGet.ts">
       <SubType>Code</SubType>

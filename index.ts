@@ -2,14 +2,9 @@
 
 'use strict';
 
-import http = require('http');
-import getContent from './util/promiseHttpGet';
+import { FhemBroker, IFhemSubscriber, IFhemObservable } from './broker';
+import { IFhemClient, FhemClient, FhemValueType } from './fhemclient';
 
-import dns = require('dns');
-import os = require('os');
-
-
-let allSubscriptions: { [name: string]: FhemAccessory[] } = {};
 let accessoryTypes: { [name: string]: any } = {};
 
 let Service, Characteristic;
@@ -30,60 +25,19 @@ interface IConfig {
     ssl: boolean;
 }
 
-enum FhemValueType {
-    "Internals",
-    "Readings",
-    "Attributes",
-}
-
 class Fhem2Platform {
     log: (msg: string) => void;
-    server: string;
-    port: number;
     filter: string[];
-    baseUrl: string;
+    fhemBroker: IFhemObservable;
+    fhemClient: IFhemClient;
 
     constructor(log, config: IConfig) {
         this.log = log;
-        this.server = config.server;
-        this.port = config.port;
         this.filter = config.filter;
-
-        if (config.ssl)
-            this.baseUrl = 'https://';
-        else
-            this.baseUrl = 'http://';
-        this.baseUrl += `${this.server}:${this.port}`;
-        this.subscribeToFhem();
-    }
-
-    private async subscribeToFhem() {
-        try {
-            //delete the notification
-            let url = encodeURI(this.baseUrl + '/fhem?cmd=delete nfHomekitdev&XHR=1');
-            await getContent(url);
-
-            const address = await dns.promises.resolve4(os.hostname());
-            const command =
-                encodeURIComponent(
-                    `define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${
-                    address[0]}:2000/$NAME/$new", callback=>sub($$$){} })}`);
-            url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
-            await getContent(url);
-        } catch (e) {
-            this.log(e);
-        }
-        http.createServer((req, res) => {
-            res.statusCode = 200;
-            res.end('ok');
-            var splitted = req.url.toString().split('/');
-            this.log(req.url.toString());
-            if (allSubscriptions[splitted[1]]) {
-                allSubscriptions[splitted[1]].forEach((accessory) => {
-                    accessory.setValueFromFhem(splitted[2], splitted.length > 3 ? splitted[3] : null);
-                });
-            }
-        }).listen(2000);
+        const broker = new FhemBroker();
+        this.fhemBroker = broker;
+        this.fhemClient = new FhemClient(log, broker, `http://${`${config.server}:${config.port}`}`);
+        this.fhemClient.subscribeToFhem();
     }
 
     accessories(cb) {
@@ -92,39 +46,36 @@ class Fhem2Platform {
     }
 
     private async compileAccessories() {
-        const cmd = 'jsonlist2';
-
-        const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-
-        const devicelist = await getContent(url);
+        const devicelist = await this.fhemClient.getDeviceList();
         const acc = [];
         for (let i = 0; i < devicelist.Results.length; i++) {
             const device = devicelist.Results[i];
             if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
 
             if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) !== -1) continue;
-
-            acc.push(new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.baseUrl));
+            const accessory =
+                new accessoryTypes[device.Attributes.homebridgeType
+                ](device, this.log, this.fhemClient, this.fhemBroker);
+            acc.push(accessory);
         }
         return acc;
     }
 }
 
-abstract class FhemAccessory {
+abstract class FhemAccessory implements IFhemSubscriber {
     name: string;
     data: any;
     log: (msg: string) => void;
     fhemName: string;
-    baseUrl: string;
+    fhemClient: IFhemClient;
 
-    protected constructor(data, log, baseUrl: string) {
+    protected constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
         this.fhemName = data.Name;
-        this.baseUrl = baseUrl;
-        allSubscriptions[this.fhemName] ? allSubscriptions[this.fhemName].push(this) : allSubscriptions[this.fhemName] =
-            [this];
+        this.fhemClient = fhemClient;
+        fhemObservable.subscribe(this.fhemName, this);
     }
 
     protected setFhemStatus(status: string): void {
@@ -136,22 +87,9 @@ abstract class FhemAccessory {
     }
 
     protected setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
-        let cmd: string;
-        if (!force) {
-            cmd = `set ${device} `;
-        } else {
-            cmd = `setreading ${device} `;
-        }
-        if (reading) cmd += reading + ' ';
-        cmd += value;
-        this.executeCommand(cmd);
+        this.fhemClient.setFhemReadingForDevice(device, reading, value, force);
     }
 
-    protected executeCommand(cmd: string): void {
-        const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-        getContent(url).catch(e => this.log(`error executing: ${cmd} ${e}`));
-
-    }
 
     protected async getFhemStatus(): Promise<string> {
         return this.getFhemNamedValue(FhemValueType.Internals, 'STATE');
@@ -162,13 +100,7 @@ abstract class FhemAccessory {
     }
 
     protected async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string> {
-        const url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
-        const response = await getContent(url);
-        if (response.Results.length > 0) {
-            const val = response.Results[0][FhemValueType[fhemType]][name];
-            return val.Value ? val.Value : val;
-        }
-        return null;
+        return this.fhemClient.getFhemNamedValueForDevice(device, fhemType, name);
     }
 
     abstract setValueFromFhem(value: string, part2?: string): void;
@@ -340,12 +272,11 @@ class FhemThermostat extends FhemAccessory {
     private currentRelativeHumidity;
     protected tempsensor: string;
 
-    constructor(data, log, baseUrl: string) {
-        super(data, log, baseUrl);
+    constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+        super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Internals.TEMPSENSOR;
-        allSubscriptions[this.tempsensor] ? allSubscriptions[this.tempsensor].push(this)
-            : allSubscriptions[this.tempsensor] = [this];
+        fhemObservable.subscribe(this.tempsensor, this);
     }
 
     getDeviceServices(): any[] {
@@ -429,12 +360,11 @@ class FhemEqivaThermostat extends FhemAccessory {
     private currentRelativeHumidity;
     protected tempsensor: string;
 
-    constructor(data, log, baseUrl: string) {
-        super(data, log, baseUrl);
+    constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+        super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Attributes.tempsensor;
-        allSubscriptions[this.tempsensor] ? allSubscriptions[this.tempsensor].push(this)
-            : allSubscriptions[this.tempsensor] = [this];
+        fhemObservable.subscribe(this.tempsensor, this);
     }
 
     getDeviceServices(): any[] {
@@ -524,7 +454,7 @@ class FhemHeatingKW910 extends FhemThermostat {
             const res = this.calcValues(value);
             this.setFhemReadingForDevice(this.tempsensor, 'temperature', res.T.toString(), true);
             this.setFhemReadingForDevice(this.tempsensor, 'humidity', res.H.toString(), true);
-            this.executeCommand(`setstate ${this.tempsensor} T: ${res.T.toString()} H: ${res.H.toString()}`);
+            this.fhemClient.executeCommand(`setstate ${this.tempsensor} T: ${res.T.toString()} H: ${res.H.toString()}`);
         }
     }
 
@@ -601,7 +531,7 @@ class FhemTempKW9010 extends FhemTemperatureSensor {
             this.setFhemReading('temperature', res.T.toString());
             this.setFhemReadingForDevice(this.fhemName, 'temperature', res.T.toString(), true);
             this.setFhemReadingForDevice(this.fhemName, 'humidity', res.H.toString(), true);
-            this.executeCommand(`setstate ${this.fhemName} T: ${res.T.toString()} H: ${res.H.toString()}`);
+            this.fhemClient.executeCommand(`setstate ${this.fhemName} T: ${res.T.toString()} H: ${res.H.toString()}`);
         }
     }
 
@@ -810,13 +740,13 @@ class FhemTvTest extends FhemAccessory {
         input1.getCharacteristic(Characteristic.ConfiguredName).on('get', (cb) => { cb(null, 'You FM') })
             .on('set', (value, cb) => { cb() });
         input1.getCharacteristic(Characteristic.InputSourceType).on('get', (cb) => {
-            cb(null, Characteristic.InputSourceType.TUNER)
+            cb(null, Characteristic.InputSourceType.TUNER);
         });
         input1.getCharacteristic(Characteristic.IsConfigured).on('get', (cb) => {
             cb(null, Characteristic.IsConfigured.CONFIGURED);
         }).on('set', (value, cb) => { cb() });
         input1.getCharacteristic(Characteristic.CurrentVisibilityState).on('get', (cb) => {
-            cb(null, Characteristic.CurrentVisibilityState.SHOWN)
+            cb(null, Characteristic.CurrentVisibilityState.SHOWN);
         });
         input1.getCharacteristic(Characteristic.Identifier).on('get', (cb) => { cb(null, Number(0)) });
 
@@ -824,13 +754,13 @@ class FhemTvTest extends FhemAccessory {
         input2.getCharacteristic(Characteristic.ConfiguredName).on('get', (cb) => { cb(null, 'You FMddd') })
             .on('set', (value, cb) => { cb() });
         input2.getCharacteristic(Characteristic.InputSourceType).on('get', (cb) => {
-            cb(null, Characteristic.InputSourceType.TUNER)
+            cb(null, Characteristic.InputSourceType.TUNER);
         });
         input2.getCharacteristic(Characteristic.IsConfigured).on('get', (cb) => {
             cb(null, Characteristic.IsConfigured.CONFIGURED);
         }).on('set', (value, cb) => { cb() });
         input2.getCharacteristic(Characteristic.CurrentVisibilityState).on('get', (cb) => {
-            cb(null, Characteristic.CurrentVisibilityState.SHOWN)
+            cb(null, Characteristic.CurrentVisibilityState.SHOWN);
         });
         input2.getCharacteristic(Characteristic.Identifier).on('get', (cb) => { cb(null, Number(1)) });
 
