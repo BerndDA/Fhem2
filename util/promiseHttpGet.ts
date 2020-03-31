@@ -3,7 +3,7 @@
 
 import http = require('http');
 
-export default function getContent(url): Promise<any> {
+export default async function getContent(url): Promise<any> {
     // return new pending promise
     return new Promise((resolve, reject) => {
         const request = http.get(url, (response) => {

@@ -583,6 +583,7 @@ class FhemTemperatureHumiditySensor extends FhemTemperatureSensor {
         if (reading === 'humidity') {
             this.currentHumidity.setValue(Number(value), undefined, 'fhem');
         }
+        super.setValueFromFhem(reading, value);
     }
 
     getCurrentHum(callback): void {
