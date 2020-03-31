@@ -6,7 +6,7 @@ import { IFhemBroker } from './broker';
 import http = require('http');
 import dns = require('dns');
 import os = require('os');
-import getContent from './util/promiseHttpGet';
+import getContent from '../util/promiseHttpGet';
 
 export interface IFhemClient {
     subscribeToFhem(): void;
