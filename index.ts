@@ -6,7 +6,8 @@ import { FhemBroker, IFhemObservable } from './client/broker';
 import { IFhemClient, FhemClient } from './client/fhemclient';
 import { FhemAccessory } from './accessories/base';
 import { FhemSwitch, FhemLightbulb, FhemOutlet, FhemProgSwitch } from './accessories/switches';
-import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTemperatureHumiditySensor, FhemTempKW9010 } from './accessories/sensors';
+import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTemperatureHumiditySensor, FhemTempKW9010 }
+    from './accessories/sensors';
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accessories/thermo';
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
 import { FhemTvTest } from './accessories/test';
@@ -71,11 +72,10 @@ class Fhem2Platform {
 
             if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) !== -1) continue;
             const accessory =
-                new accessoryTypes[device.Attributes.homebridgeType](device, this.log, this.fhemClient, this.fhemBroker);
+                new accessoryTypes[device.Attributes.homebridgeType
+                ](device, this.log, this.fhemClient, this.fhemBroker);
             acc.push(accessory);
         }
         return acc;
     }
 }
-
-

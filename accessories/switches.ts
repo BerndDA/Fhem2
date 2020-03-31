@@ -1,4 +1,4 @@
-import { FhemAccessory } from "./base";
+import { FhemAccessory } from './base';
 
 export abstract class FhemOnOffSwitchable extends FhemAccessory {
 
@@ -51,7 +51,8 @@ export class FhemOutlet extends FhemOnOffSwitchable {
         this.characteristic
             .on('get', this.getPowerState.bind(this))
             .on('set', this.setPowerState.bind(this));
-        service.getCharacteristic(FhemAccessory.Characteristic.OutletInUse).on('get', (callback) => { callback(null, true); });
+        service.getCharacteristic(FhemAccessory.Characteristic.OutletInUse)
+            .on('get', (callback) => { callback(null, true); });
         return [service];
     }
 }
@@ -66,14 +67,18 @@ export class FhemProgSwitch extends FhemAccessory {
     getDeviceServices(): any[] {
         for (let name of FhemProgSwitch.channels) {
 
-            const service = new FhemAccessory.Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
+            const service =
+                new FhemAccessory.Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
             this.switchEvent[name] = service.getCharacteristic(FhemAccessory.Characteristic.ProgrammableSwitchEvent);
             this.buttons[name] = new ButtonStateMachine(() => {
-                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS, undefined, 'fhem');
+                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+                    undefined, 'fhem');
             }, () => {
-                    this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.LONG_PRESS, undefined, 'fhem');
+                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
+                    undefined, 'fhem');
             }, () => {
-                    this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS, undefined, 'fhem');
+                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS,
+                    undefined, 'fhem');
             });
             this.services.push(service);
         }

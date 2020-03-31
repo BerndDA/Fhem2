@@ -1,6 +1,5 @@
-import { IFhemSubscriber, IFhemObservable } from "../client/broker";
-import { IFhemClient, FhemValueType } from "../client/fhemclient";
-
+import { IFhemSubscriber, IFhemObservable } from '../client/broker';
+import { IFhemClient, FhemValueType } from '../client/fhemclient';
 
 
 export abstract class FhemAccessory implements IFhemSubscriber {
@@ -11,7 +10,6 @@ export abstract class FhemAccessory implements IFhemSubscriber {
     fhemClient: IFhemClient;
     static Service: any;
     static Characteristic: any;
-
 
     protected constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
@@ -33,7 +31,6 @@ export abstract class FhemAccessory implements IFhemSubscriber {
     protected setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
         this.fhemClient.setFhemReadingForDevice(device, reading, value, force);
     }
-
 
     protected async getFhemStatus(): Promise<string> {
         return this.getFhemNamedValue(FhemValueType.Internals, 'STATE');

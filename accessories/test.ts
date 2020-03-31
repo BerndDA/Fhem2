@@ -1,5 +1,5 @@
-import { FhemAccessory } from "./base";
-import { FhemValueType } from "../client/fhemclient";
+import { FhemAccessory } from './base';
+import { FhemValueType } from '../client/fhemclient';
 
 export class FhemTvTest extends FhemAccessory {
     private active;
@@ -32,7 +32,9 @@ export class FhemTvTest extends FhemAccessory {
         this.configuredName.on('set', (value, cb) => { cb() });
 
         this.sleepDiscoveryMode = service.getCharacteristic(FhemAccessory.Characteristic.SleepDiscoveryMode);
-        this.sleepDiscoveryMode.on('get', (cb) => { cb(null, FhemAccessory.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE) });
+        this.sleepDiscoveryMode.on('get', (cb) => {
+            cb(null, FhemAccessory.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE)
+        });
 
         const volService = new FhemAccessory.Service.TelevisionSpeaker(this.name + 'volume', 'volService');
         this.mute = volService.getCharacteristic(FhemAccessory.Characteristic.Mute);
@@ -60,7 +62,8 @@ export class FhemTvTest extends FhemAccessory {
         input1.getCharacteristic(FhemAccessory.Characteristic.Identifier).on('get', (cb) => { cb(null, Number(0)) });
 
         var input2 = new FhemAccessory.Service.InputSource('chann2', 'Channel 2');
-        input2.getCharacteristic(FhemAccessory.Characteristic.ConfiguredName).on('get', (cb) => { cb(null, 'You FMddd') })
+        input2.getCharacteristic(FhemAccessory.Characteristic.ConfiguredName)
+            .on('get', (cb) => { cb(null, 'You FMddd') })
             .on('set', (value, cb) => { cb() });
         input2.getCharacteristic(FhemAccessory.Characteristic.InputSourceType).on('get', (cb) => {
             cb(null, FhemAccessory.Characteristic.InputSourceType.TUNER);
@@ -87,8 +90,10 @@ export class FhemTvTest extends FhemAccessory {
 
     getPositionState(callback): void {
         this.getFhemStatus().then((status) => {
-            if (status === 'down' || status === 'closes') callback(null, FhemAccessory.Characteristic.PositionState.INCREASING);
-            else if (status === 'up' || status === 'opens') callback(null, FhemAccessory.Characteristic.PositionState.DECREASING);
+            if (status === 'down' || status === 'closes')
+                callback(null, FhemAccessory.Characteristic.PositionState.INCREASING);
+            else if (status === 'up' || status === 'opens')
+                callback(null, FhemAccessory.Characteristic.PositionState.DECREASING);
             else callback(null, FhemAccessory.Characteristic.PositionState.STOPPED);
         });
     }

@@ -1,19 +1,21 @@
-import { FhemAccessory } from "./base";
-import { FhemValueType } from "../client/fhemclient";
+import { FhemAccessory } from './base';
+import { FhemValueType } from '../client/fhemclient';
 
 export class FhemDoubleTapSwitch extends FhemAccessory {
 
     private characteristicUp: any;
     private characteristicDown: any;
 
-    setValueFromFhem(value: string, part2?: string): void { }
+    setValueFromFhem(value: string, part2?: string): void {}
 
     getDeviceServices(): any[] {
         const sUp = new FhemAccessory.Service.Switch('up', 'up');
-        this.characteristicUp = sUp.getCharacteristic(FhemAccessory.Characteristic.On).on('get', (cb) => cb(null, false))
+        this.characteristicUp = sUp.getCharacteristic(FhemAccessory.Characteristic.On)
+            .on('get', (cb) => cb(null, false))
             .on('set', this.setUpState.bind(this));
         const sDown = new FhemAccessory.Service.Switch('down', 'down');
-        this.characteristicDown = sDown.getCharacteristic(FhemAccessory.Characteristic.On).on('get', (cb) => cb(null, true))
+        this.characteristicDown = sDown.getCharacteristic(FhemAccessory.Characteristic.On)
+            .on('get', (cb) => cb(null, true))
             .on('set', this.setDownState.bind(this));
 
         return [sUp, sDown];
@@ -90,8 +92,10 @@ export class FhemWindowCovering extends FhemAccessory {
 
     getPositionState(callback): void {
         this.getFhemStatus().then((status) => {
-            if (status === 'down' || status === 'closes') callback(null, FhemAccessory.Characteristic.PositionState.INCREASING);
-            else if (status === 'up' || status === 'opens') callback(null, FhemAccessory.Characteristic.PositionState.DECREASING);
+            if (status === 'down' || status === 'closes')
+                callback(null, FhemAccessory.Characteristic.PositionState.INCREASING);
+            else if (status === 'up' || status === 'opens')
+                callback(null, FhemAccessory.Characteristic.PositionState.DECREASING);
             else callback(null, FhemAccessory.Characteristic.PositionState.STOPPED);
         });
     }

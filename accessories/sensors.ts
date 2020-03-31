@@ -1,5 +1,5 @@
-import { FhemAccessory } from "./base";
-import { FhemValueType } from "../client/fhemclient";
+import { FhemAccessory } from './base';
+import { FhemValueType } from '../client/fhemclient';
 
 abstract class FhemSensor extends FhemAccessory {
     protected characteristic: any;

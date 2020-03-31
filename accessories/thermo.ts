@@ -1,6 +1,6 @@
-import { FhemAccessory } from "./base";
-import { IFhemClient, FhemValueType } from "../client/fhemclient";
-import { IFhemObservable } from "../client/broker";
+import { FhemAccessory } from './base';
+import { IFhemClient, FhemValueType } from '../client/fhemclient';
+import { IFhemObservable } from '../client/broker';
 
 export class FhemThermostat extends FhemAccessory {
 
@@ -21,24 +21,29 @@ export class FhemThermostat extends FhemAccessory {
 
     getDeviceServices(): any[] {
         const service = new FhemAccessory.Service.Thermostat(this.name);
-        this.currentHeatingCoolingState = service.getCharacteristic(FhemAccessory.Characteristic.CurrentHeatingCoolingState);
+        this.currentHeatingCoolingState =
+            service.getCharacteristic(FhemAccessory.Characteristic.CurrentHeatingCoolingState);
         this.currentHeatingCoolingState.on('get', this.getHCState.bind(this));
 
-        this.targetHeatingCoolingState = service.getCharacteristic(FhemAccessory.Characteristic.TargetHeatingCoolingState);
+        this.targetHeatingCoolingState =
+            service.getCharacteristic(FhemAccessory.Characteristic.TargetHeatingCoolingState);
         this.targetHeatingCoolingState.on('get', this.getHCState.bind(this))
             .on('set', (value: Number, callback, context: string) => { callback(); });
 
         this.currentTemperature = service.getCharacteristic(FhemAccessory.Characteristic.CurrentTemperature);
         this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
 
-        this.currentRelativeHumidity = service.addCharacteristic(new FhemAccessory.Characteristic.CurrentRelativeHumidity());
+        this.currentRelativeHumidity =
+            service.addCharacteristic(new FhemAccessory.Characteristic.CurrentRelativeHumidity());
         this.currentRelativeHumidity.on('get', this.getCurrentHumidity.bind(this));
 
         this.targetTemperature = service.getCharacteristic(FhemAccessory.Characteristic.TargetTemperature);
         this.targetTemperature.on('get', this.getTargetTemp.bind(this)).on('set', this.setTargetTemp.bind(this));
 
         this.temperatureDisplayUnits = service.getCharacteristic(FhemAccessory.Characteristic.TemperatureDisplayUnits);
-        this.temperatureDisplayUnits.on('get', (cb) => { cb(FhemAccessory.Characteristic.TemperatureDisplayUnits.CELSIUS) })
+        this.temperatureDisplayUnits.on('get', (cb) => {
+                cb(FhemAccessory.Characteristic.TemperatureDisplayUnits.CELSIUS)
+            })
             .on('set', (value: Number, callback, context: string) => { callback(); });
 
         return [service];
@@ -48,7 +53,7 @@ export class FhemThermostat extends FhemAccessory {
         this.getFhemNamedValue(FhemValueType.Readings, 'actorState').then(status =>
             callback(null,
                 status === 'on' ? FhemAccessory.Characteristic.CurrentHeatingCoolingState.HEAT
-                    : FhemAccessory.Characteristic.CurrentHeatingCoolingState.OFF)
+                : FhemAccessory.Characteristic.CurrentHeatingCoolingState.OFF)
         );
     }
 
@@ -109,23 +114,28 @@ export class FhemEqivaThermostat extends FhemAccessory {
 
     getDeviceServices(): any[] {
         const service = new FhemAccessory.Service.Thermostat(this.name);
-        this.currentHeatingCoolingState = service.getCharacteristic(FhemAccessory.Characteristic.CurrentHeatingCoolingState);
+        this.currentHeatingCoolingState =
+            service.getCharacteristic(FhemAccessory.Characteristic.CurrentHeatingCoolingState);
         this.currentHeatingCoolingState.on('get', this.getHCState.bind(this));
 
-        this.targetHeatingCoolingState = service.getCharacteristic(FhemAccessory.Characteristic.TargetHeatingCoolingState);
+        this.targetHeatingCoolingState =
+            service.getCharacteristic(FhemAccessory.Characteristic.TargetHeatingCoolingState);
         this.targetHeatingCoolingState.on('get', this.getHCState.bind(this)).on('set', this.setHCState.bind(this));
 
         this.currentTemperature = service.getCharacteristic(FhemAccessory.Characteristic.CurrentTemperature);
         this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
 
-        this.currentRelativeHumidity = service.addCharacteristic(new FhemAccessory.Characteristic.CurrentRelativeHumidity());
+        this.currentRelativeHumidity =
+            service.addCharacteristic(new FhemAccessory.Characteristic.CurrentRelativeHumidity());
         this.currentRelativeHumidity.on('get', this.getCurrentHumidity.bind(this));
 
         this.targetTemperature = service.getCharacteristic(FhemAccessory.Characteristic.TargetTemperature);
         this.targetTemperature.on('get', this.getTargetTemp.bind(this)).on('set', this.setTargetTemp.bind(this));
 
         this.temperatureDisplayUnits = service.getCharacteristic(FhemAccessory.Characteristic.TemperatureDisplayUnits);
-        this.temperatureDisplayUnits.on('get', (cb) => { cb(FhemAccessory.Characteristic.TemperatureDisplayUnits.CELSIUS) })
+        this.temperatureDisplayUnits.on('get', (cb) => {
+                cb(FhemAccessory.Characteristic.TemperatureDisplayUnits.CELSIUS)
+            })
             .on('set', (value: Number, callback, context: string) => { callback(); });
 
         return [service];
@@ -135,7 +145,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
         this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature').then(temp =>
             callback(null,
                 Number(temp) > 4.5 ? FhemAccessory.Characteristic.CurrentHeatingCoolingState.AUTO
-                    : FhemAccessory.Characteristic.CurrentHeatingCoolingState.OFF)
+                : FhemAccessory.Characteristic.CurrentHeatingCoolingState.OFF)
         );
     }
 
@@ -182,7 +192,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
             this.targetTemperature.setValue(Number(value), undefined, 'fhem');
             this.currentHeatingCoolingState.setValue(
                 Number(value) > 4.5 ? FhemAccessory.Characteristic.CurrentHeatingCoolingState.AUTO
-                    : FhemAccessory.Characteristic.CurrentHeatingCoolingState.OFF, undefined, 'fhem');
+                : FhemAccessory.Characteristic.CurrentHeatingCoolingState.OFF, undefined, 'fhem');
         }
     }
 }
@@ -210,4 +220,3 @@ export class FhemHeatingKW910 extends FhemThermostat {
         return { T: temp, H: hum };
     }
 }
-

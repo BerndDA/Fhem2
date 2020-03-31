@@ -24,11 +24,11 @@ export enum FhemValueType {
 
 export class FhemClient implements IFhemClient {
 
-    private broker: IFhemBroker
+    private broker: IFhemBroker;
     private baseUrl: string;
     private log: any;
 
-    constructor(log:any, broker: IFhemBroker, baseUrl: string) {
+    constructor(log: any, broker: IFhemBroker, baseUrl: string) {
         this.broker = broker;
         this.log = log;
         this.baseUrl = baseUrl;
@@ -62,7 +62,7 @@ export class FhemClient implements IFhemClient {
         this.executeCommand(cmd);
     }
 
-    executeCommand(cmd: string):void {
+    executeCommand(cmd: string): void {
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
         getContent(url).catch(e => this.log(`error executing: ${cmd} ${e}`));
     }
