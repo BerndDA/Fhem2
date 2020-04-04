@@ -11,8 +11,8 @@ import getContent from '../util/promiseHttpGet';
 export interface IFhemClient {
     subscribeToFhem(): void;
     getDeviceList(): Promise<any>;
-    getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string>;
-    setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean): void;
+    getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null>;
+    setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean): void;
     executeCommand(cmd: string): void;
 }
 
@@ -40,7 +40,7 @@ export class FhemClient implements IFhemClient {
         return getContent(url);
     }
 
-    async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string> {
+    async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null> {
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
         const response = await getContent(url);
         if (response.Results.length > 0) {
@@ -50,7 +50,7 @@ export class FhemClient implements IFhemClient {
         return null;
     }
 
-    setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
+    setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false): void {
         let cmd: string;
         if (!force) {
             cmd = `set ${device} `;
@@ -86,9 +86,11 @@ export class FhemClient implements IFhemClient {
         http.createServer((req, res) => {
             res.statusCode = 200;
             res.end('ok');
-            var splitted = req.url.toString().split('/');
-            this.log(req.url.toString());
-            this.broker.notify(splitted[1], splitted[2], splitted.length > 3 ? splitted[3] : null);
+            if (req.url) {
+                var splitted = req.url.toString().split('/');
+                this.log(req.url.toString());
+                this.broker.notify(splitted[1], splitted[2], splitted.length > 3 ? splitted[3] : null);
+            }
         }).listen(2000);
     }
 }

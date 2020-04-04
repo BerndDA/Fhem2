@@ -10,9 +10,9 @@ import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTempera
     from './accessories/sensors';
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accessories/thermo';
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
-import { FhemTvTest } from './accessories/test';
+import { FhemLametricRemote } from './accessories/remote';
 
-let accessoryTypes: { [name: string]: any } = {};
+let accessoryTypes: { [name: string]: any } = { };
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
 accessoryTypes['heatingEQ3'] = FhemEqivaThermostat;
@@ -25,7 +25,7 @@ accessoryTypes['temperaturehumiditysensor'] = FhemTemperatureHumiditySensor;
 accessoryTypes['tempKW9010'] = FhemTempKW9010;
 accessoryTypes['outlet'] = FhemOutlet;
 accessoryTypes['windowcovering'] = FhemWindowCovering;
-accessoryTypes['tvtest'] = FhemTvTest;
+accessoryTypes['lametricremote'] = FhemLametricRemote;
 accessoryTypes['progswitch'] = FhemProgSwitch;
 accessoryTypes['updownswitch'] = FhemDoubleTapSwitch;
 
@@ -64,13 +64,13 @@ class Fhem2Platform {
     }
 
     private async compileAccessories() {
-        const devicelist = await this.fhemClient.getDeviceList();
-        const acc = [];
-        for (let i = 0; i < devicelist.Results.length; i++) {
-            const device = devicelist.Results[i];
+        const deviceList = await this.fhemClient.getDeviceList();
+        const acc: any[] = [];
+        for (let i = 0; i < deviceList.Results.length; i++) {
+            const device = deviceList.Results[i];
             if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
 
-            if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) !== -1) continue;
+            if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) === -1) continue;
             const accessory =
                 new accessoryTypes[device.Attributes.homebridgeType
                 ](device, this.log, this.fhemClient, this.fhemBroker);

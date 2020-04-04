@@ -3,7 +3,7 @@
 'use strict';
 
 export interface IFhemObservable {
-    subscribe(topic: string, subscriber: IFhemSubscriber)
+    subscribe(topic: string, subscriber: IFhemSubscriber);
 }
 
 export interface IFhemSubscriber {
@@ -11,7 +11,7 @@ export interface IFhemSubscriber {
 }
 
 export interface IFhemBroker {
-    notify(topic: string, value1: string, value2: string): void
+    notify(topic: string, value1: string, value2: string|null): void
 }
 
 export class FhemBroker implements IFhemObservable, IFhemBroker {
@@ -22,10 +22,10 @@ export class FhemBroker implements IFhemObservable, IFhemBroker {
             [subscriber];
     }
 
-    notify(topic: string, value1: string, value2: string) {
+    notify(topic: string, value1: string, value2: string|null) {
         if (this.allSubscriptions[topic]) {
             this.allSubscriptions[topic].forEach((accessory) => {
-                accessory.setValueFromFhem(value1, value2 ? value2 : null);
+                accessory.setValueFromFhem(value1, value2 ? value2 : undefined);
             });
         }
     }

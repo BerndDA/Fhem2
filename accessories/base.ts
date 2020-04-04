@@ -24,23 +24,23 @@ export abstract class FhemAccessory implements IFhemSubscriber {
         this.setFhemReading(null, status);
     }
 
-    protected setFhemReading(reading: string, value: string): void {
+    protected setFhemReading(reading: string|null, value: string): void {
         this.setFhemReadingForDevice(this.fhemName, reading, value);
     }
 
-    protected setFhemReadingForDevice(device: string, reading: string, value: string, force: boolean = false): void {
+    protected setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false): void {
         this.fhemClient.setFhemReadingForDevice(device, reading, value, force);
     }
 
-    protected async getFhemStatus(): Promise<string> {
+    protected async getFhemStatus(): Promise<string|null> {
         return this.getFhemNamedValue(FhemValueType.Internals, 'STATE');
     }
 
-    protected async getFhemNamedValue(fhemType: FhemValueType, name: string): Promise<string> {
+    protected async getFhemNamedValue(fhemType: FhemValueType, name: string): Promise<string|null> {
         return this.getFhemNamedValueForDevice(this.fhemName, fhemType, name);
     }
 
-    protected async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string> {
+    protected async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null> {
         return this.fhemClient.getFhemNamedValueForDevice(device, fhemType, name);
     }
 
@@ -56,12 +56,9 @@ export abstract class FhemAccessory implements IFhemSubscriber {
             .setCharacteristic(FhemAccessory.Characteristic.Model, this.data.Internals.TYPE)
             .setCharacteristic(FhemAccessory.Characteristic.SerialNumber, this.data.Internals.NR);
         const deviceServices = this.getDeviceServices();
-        var $this = this;
         deviceServices.forEach((element) => {
-            element.getCharacteristic(FhemAccessory.Characteristic.Name)
-                .on('get', (cb) => {
-                    cb(null, $this.data.Attributes.siriName ? $this.data.Attributes.siriName : '');
-                });
+            element.setCharacteristic(FhemAccessory.Characteristic.Name,
+                this.data.Attributes.siriName ? this.data.Attributes.siriName : this.data.Name);
         });
 
         return [informationService].concat(deviceServices);
