@@ -9,7 +9,7 @@
     <ToolsVersionPromptShown>2.6</ToolsVersionPromptShown>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
-    <Environment>DEBUG=*</Environment>
+    <Environment>DEBUG=INFO</Environment>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -75,6 +75,7 @@
     <TypeScriptCompile Include="client\fhemclient.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="ILogger.ts" />
     <TypeScriptCompile Include="index.ts" />
     <TypeScriptCompile Include="util\promiseHttpGet.ts">
       <SubType>Code</SubType>

@@ -5,13 +5,13 @@ import { IFhemClient, FhemValueType } from '../client/fhemclient';
 export abstract class FhemAccessory implements IFhemSubscriber {
     name: string;
     data: any;
-    log: (msg: string) => void;
+    log: ILogger;
     fhemName: string;
     fhemClient: IFhemClient;
     static Service: any;
     static Characteristic: any;
 
-    protected constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    protected constructor(data, log:ILogger, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
@@ -65,7 +65,7 @@ export abstract class FhemAccessory implements IFhemSubscriber {
     }
 
     identify(callback) {
-        this.log('Identify requested!');
+        this.log.info(`Identify requested! ${this.name}`);
         callback(); // success
     }
 }

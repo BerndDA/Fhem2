@@ -12,7 +12,7 @@ export class FhemThermostat extends FhemAccessory {
     private currentRelativeHumidity;
     protected tempsensor: string;
 
-    constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data, log:ILogger, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Internals.TEMPSENSOR;
@@ -82,7 +82,6 @@ export class FhemThermostat extends FhemAccessory {
     }
 
     setValueFromFhem(reading: string, value: string): void {
-        this.log(`received value: ${reading}.${value} for ${this.name}`);
         if (reading === 'temperature') {
             this.currentTemperature.setValue(Number(value), undefined, 'fhem');
         }
@@ -105,7 +104,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
     private currentRelativeHumidity;
     protected tempsensor: string;
 
-    constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data, log:ILogger, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Attributes.tempsensor;
@@ -181,7 +180,6 @@ export class FhemEqivaThermostat extends FhemAccessory {
     }
 
     setValueFromFhem(reading: string, value: string): void {
-        this.log(`received value: ${reading}.${value} for ${this.name}`);
         if (reading === 'temperature') {
             this.currentTemperature.setValue(Number(value), undefined, 'fhem');
         }

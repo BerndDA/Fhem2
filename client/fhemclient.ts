@@ -26,7 +26,7 @@ export class FhemClient implements IFhemClient {
 
     private broker: IFhemBroker;
     private baseUrl: string;
-    private log: any;
+    private log: ILogger;
 
     constructor(log: any, broker: IFhemBroker, baseUrl: string) {
         this.broker = broker;
@@ -64,7 +64,7 @@ export class FhemClient implements IFhemClient {
 
     executeCommand(cmd: string): void {
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-        getContent(url).catch(e => this.log(`error executing: ${cmd} ${e}`));
+        getContent(url).catch(e => this.log.error(`error executing: ${cmd} ${e}`));
     }
 
     async subscribeToFhem() {
@@ -81,14 +81,14 @@ export class FhemClient implements IFhemClient {
             url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
             await getContent(url);
         } catch (e) {
-            this.log(e);
+            this.log.error(e);
         }
         http.createServer((req, res) => {
             res.statusCode = 200;
             res.end('ok');
             if (req.url) {
                 var splitted = req.url.toString().split('/');
-                this.log(req.url.toString());
+                this.log.info(`fhem callback: ${req.url}`);
                 this.broker.notify(splitted[1], splitted[2], splitted.length > 3 ? splitted[3] : null);
             }
         }).listen(2000);

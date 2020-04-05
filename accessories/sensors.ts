@@ -9,7 +9,6 @@ abstract class FhemSensor extends FhemAccessory {
     }
 
     setValueFromFhem(value: string): void {
-        this.log(`received value: ${value} for ${this.name}`);
         this.characteristic.setValue(value === 'on', undefined, 'fhem');
     }
 }

@@ -44,12 +44,12 @@ interface IConfig {
 }
 
 class Fhem2Platform {
-    log: (msg: string) => void;
+    log: ILogger;
     filter: string[];
     fhemBroker: IFhemObservable;
     fhemClient: IFhemClient;
 
-    constructor(log, config: IConfig) {
+    constructor(log: ILogger, config: IConfig) {
         this.log = log;
         this.filter = config.filter;
         const broker = new FhemBroker();
@@ -60,7 +60,7 @@ class Fhem2Platform {
 
     accessories(cb) {
         this.compileAccessories().then(res => cb(res))
-            .catch(e => this.log(e));
+            .catch(e => this.log.error(e));
     }
 
     private async compileAccessories() {
