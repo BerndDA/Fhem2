@@ -1,12 +1,10 @@
 'use strict';
 
 import { FhemAccessory } from './base';
-import { FhemValueType } from '../client/fhemclient';
 import Fhemclient = require('../client/fhemclient');
 import IFhemClient = Fhemclient.IFhemClient;
 import Broker = require('../client/broker');
 import IFhemObservable = Broker.IFhemObservable;
-import IFhemSubscriber = Broker.IFhemSubscriber;
 
 export class FhemLametricRemote extends FhemAccessory {
     private active;
@@ -19,14 +17,10 @@ export class FhemLametricRemote extends FhemAccessory {
     constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         this.powerPlug = data.Attributes.powerPlug;
-        const turnOn = this.turnOn.bind(this);
-        const turnOff = this.turnOff.bind(this);
-        fhemObservable.subscribe(this.powerPlug, new (class PowerObserver implements IFhemSubscriber {
-            setValueFromFhem(value: string): void {
-                if (value === 'on') turnOn();
-                else if (value === 'off') turnOff();
-            }
-        }));
+        fhemObservable.on(this.powerPlug, (value) => {
+            if (value === 'on') this.turnOn();
+            else if (value === 'off') this.turnOff();
+        });
     }
 
     setValueFromFhem(value: string, part2?: string): void {

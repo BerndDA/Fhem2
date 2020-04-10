@@ -1,8 +1,8 @@
-import { IFhemSubscriber, IFhemObservable } from '../client/broker';
+import { IFhemObservable } from '../client/broker';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
 
 
-export abstract class FhemAccessory implements IFhemSubscriber {
+export abstract class FhemAccessory {
     name: string;
     data: any;
     log: ILogger;
@@ -17,7 +17,7 @@ export abstract class FhemAccessory implements IFhemSubscriber {
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
         this.fhemName = data.Name;
         this.fhemClient = fhemClient;
-        fhemObservable.subscribe(this.fhemName, this);
+        fhemObservable.on(this.fhemName, this.setValueFromFhem.bind(this));
     }
 
     protected setFhemStatus(status: string): void {

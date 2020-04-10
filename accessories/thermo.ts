@@ -16,7 +16,7 @@ export class FhemThermostat extends FhemAccessory {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Internals.TEMPSENSOR;
-        fhemObservable.subscribe(this.tempsensor, this);
+        fhemObservable.on(this.tempsensor, this.setValueFromFhem.bind(this));
     }
 
     getDeviceServices(): any[] {
@@ -81,7 +81,7 @@ export class FhemThermostat extends FhemAccessory {
         callback();
     }
 
-    setValueFromFhem(reading: string, value: string): void {
+    setValueFromFhem(reading: string, value?: string): void {
         if (reading === 'temperature') {
             this.currentTemperature.setValue(Number(value), undefined, 'fhem');
         }
@@ -108,7 +108,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Attributes.tempsensor;
-        fhemObservable.subscribe(this.tempsensor, this);
+        fhemObservable.on(this.tempsensor, this.setValueFromFhem.bind(this));
     }
 
     getDeviceServices(): any[] {
@@ -179,7 +179,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
         callback();
     }
 
-    setValueFromFhem(reading: string, value: string): void {
+    setValueFromFhem(reading: string, value?: string): void {
         if (reading === 'temperature') {
             this.currentTemperature.setValue(Number(value), undefined, 'fhem');
         }

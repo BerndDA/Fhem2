@@ -2,31 +2,24 @@
 
 'use strict';
 
-export interface IFhemObservable {
-    subscribe(topic: string, subscriber: IFhemSubscriber);
-}
+import events = require('events');
 
-export interface IFhemSubscriber {
-    setValueFromFhem(value: string, part2?: string): void
+export interface IFhemObservable {
+    on(event: string, listener: (value1: string, value2?: string) => void): this;
 }
 
 export interface IFhemBroker {
     notify(topic: string, value1: string, value2: string|null): void
 }
 
-export class FhemBroker implements IFhemObservable, IFhemBroker {
-    private allSubscriptions: { [name: string]: IFhemSubscriber[] } = {};
+export class FhemBroker extends events.EventEmitter implements IFhemObservable, IFhemBroker {
 
-    subscribe(topic: string, subscriber: IFhemSubscriber) {
-        this.allSubscriptions[topic] ? this.allSubscriptions[topic].push(subscriber) : this.allSubscriptions[topic] =
-            [subscriber];
+    on(event: string, listener: (value1: string, value2?: string) => void): this {
+        super.on(event, listener);
+        return this;
     }
 
-    notify(topic: string, value1: string, value2: string|null) {
-        if (this.allSubscriptions[topic]) {
-            this.allSubscriptions[topic].forEach((accessory) => {
-                accessory.setValueFromFhem(value1, value2 ? value2 : undefined);
-            });
-        }
+    notify(topic: string, value1: string, value2: string | null) {
+        this.emit(topic, value1, value2 ? value2 : undefined);
     }
 }
