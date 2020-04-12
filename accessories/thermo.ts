@@ -1,6 +1,8 @@
 import { FhemAccessory } from './base';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
 import { IFhemObservable } from '../client/broker';
+import { Logging } from 'homebridge';
+
 
 export class FhemThermostat extends FhemAccessory {
 
@@ -12,7 +14,7 @@ export class FhemThermostat extends FhemAccessory {
     private currentRelativeHumidity;
     protected tempsensor: string;
 
-    constructor(data, log:ILogger, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Internals.TEMPSENSOR;
@@ -104,7 +106,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
     private currentRelativeHumidity;
     protected tempsensor: string;
 
-    constructor(data, log:ILogger, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Attributes.tempsensor;

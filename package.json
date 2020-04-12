@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@types/node": "^13.9.8",
+    "homebridge": "0.4.54-beta.27",
     "typescript": "^3.8.0"
   },
   "scripts": {

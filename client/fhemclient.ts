@@ -7,6 +7,7 @@ import http = require('http');
 import dns = require('dns');
 import os = require('os');
 import getContent from '../util/promiseHttpGet';
+import { Logging } from 'homebridge';
 
 export interface IFhemClient {
     subscribeToFhem(): void;
@@ -26,9 +27,9 @@ export class FhemClient implements IFhemClient {
 
     private broker: IFhemBroker;
     private baseUrl: string;
-    private log: ILogger;
+    private log: Logging;
 
-    constructor(log: any, broker: IFhemBroker, baseUrl: string) {
+    constructor(log: Logging, broker: IFhemBroker, baseUrl: string) {
         this.broker = broker;
         this.log = log;
         this.baseUrl = baseUrl;

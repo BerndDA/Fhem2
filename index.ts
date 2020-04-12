@@ -11,6 +11,7 @@ import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTempera
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accessories/thermo';
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
 import { FhemLametricRemote } from './accessories/remote';
+import {Logging} from 'homebridge'
 
 let accessoryTypes: { [name: string]: any } = { };
 accessoryTypes['heating'] = FhemThermostat;
@@ -44,12 +45,12 @@ interface IConfig {
 }
 
 class Fhem2Platform {
-    log: ILogger;
+    log: Logging;
     filter: string[];
     fhemBroker: IFhemObservable;
     fhemClient: IFhemClient;
 
-    constructor(log: ILogger, config: IConfig) {
+    constructor(log: Logging, config: IConfig) {
         this.log = log;
         this.filter = config.filter;
         const broker = new FhemBroker();
