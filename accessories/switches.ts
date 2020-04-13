@@ -1,16 +1,25 @@
 import { FhemAccessory } from './base';
+import {
+    Service,
+    Characteristic,
+    CharacteristicEventTypes,
+    CharacteristicValue,
+    CharacteristicSetCallback,
+    CharacteristicGetCallback
+} from 'homebridge';
+
 
 export abstract class FhemOnOffSwitchable extends FhemAccessory {
 
-    characteristic: any;
+    protected characteristic!: Characteristic;
 
-    getPowerState(callback): void {
+    getPowerState(callback: CharacteristicGetCallback): void {
         this.getFhemStatus().then(status =>
             callback(null, status === 'on')
         );
     }
 
-    setPowerState(value: boolean, callback, context: string): void {
+    setPowerState(value: CharacteristicValue, callback: CharacteristicSetCallback, context: string): void {
         if (context !== 'fhem')
             this.setFhemStatus(value ? 'on' : 'off');
         callback();
@@ -23,80 +32,74 @@ export abstract class FhemOnOffSwitchable extends FhemAccessory {
 }
 
 export class FhemSwitch extends FhemOnOffSwitchable {
-    getDeviceServices(): any[] {
-        const switchService = new FhemAccessory.Service.Switch(this.name);
-        this.characteristic = switchService.getCharacteristic(FhemAccessory.Characteristic.On);
+    getDeviceServices(): Service[] {
+        const switchService = new Service.Switch(this.name);
+        this.characteristic = switchService.getCharacteristic(Characteristic.On)!;
         this.characteristic
-            .on('get', this.getPowerState.bind(this))
-            .on('set', this.setPowerState.bind(this));
+            .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
+            .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
+
         return [switchService];
     }
 }
 
 export class FhemLightbulb extends FhemOnOffSwitchable {
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.Lightbulb(this.name);
-        this.characteristic = service.getCharacteristic(FhemAccessory.Characteristic.On);
+    getDeviceServices(): Service[] {
+        const service = new Service.Lightbulb(this.name);
+        this.characteristic = service.getCharacteristic(Characteristic.On)!;
         this.characteristic
-            .on('get', this.getPowerState.bind(this))
-            .on('set', this.setPowerState.bind(this));
+            .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
+            .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
         return [service];
     }
 }
 
 export class FhemOutlet extends FhemOnOffSwitchable {
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.Outlet(this.name);
-        this.characteristic = service.getCharacteristic(FhemAccessory.Characteristic.On);
+    getDeviceServices(): Service[] {
+        const service = new Service.Outlet(this.name);
+        this.characteristic = service.getCharacteristic(Characteristic.On)!;
         this.characteristic
-            .on('get', this.getPowerState.bind(this))
-            .on('set', this.setPowerState.bind(this));
-        service.getCharacteristic(FhemAccessory.Characteristic.OutletInUse)
-            .on('get', (callback) => { callback(null, true); });
+            .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
+            .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
+        service.getCharacteristic(Characteristic.OutletInUse)!
+            .on(CharacteristicEventTypes.GET, (callback) => { callback(null, true); });
         return [service];
     }
 }
 
 export class FhemProgSwitch extends FhemAccessory {
 
-    private switchEvent = {};
+    private switchEvent: Map<string, Characteristic> = new Map();
     private static channels = ['A0', 'AI', 'B0', 'BI'];
-    private services = new Array();
-    private buttons = {};
+    private services: Service[] = new Array();
+    private buttons: Map<string, ButtonStateMachine> = new Map();
 
-    getDeviceServices(): any[] {
+    getDeviceServices(): Service[] {
         for (let name of FhemProgSwitch.channels) {
 
             const service =
-                new FhemAccessory.Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
-            this.switchEvent[name] = service.getCharacteristic(FhemAccessory.Characteristic.ProgrammableSwitchEvent);
-            this.buttons[name] = new ButtonStateMachine(() => {
-                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-                    undefined, 'fhem');
-            }, () => {
-                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
-                    undefined, 'fhem');
-            }, () => {
-                this.switchEvent[name].setValue(FhemAccessory.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS,
-                    undefined, 'fhem');
-            });
+                new Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
+            this.switchEvent.set(name, service.getCharacteristic(Characteristic.ProgrammableSwitchEvent)!);
+            this.buttons.set(name, new ButtonStateMachine(() =>
+                this.switchEvent.get(name)!.setValue(Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+                    undefined, 'fhem'), () =>
+                this.switchEvent.get(name)!.setValue(Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
+                    undefined, 'fhem'), () =>
+                this.switchEvent.get(name)!.setValue(Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS,
+                    undefined, 'fhem')
+            ));
             this.services.push(service);
         }
-
-
         return this.services;
     }
 
     setValueFromFhem(value: string, part2?: string): void {
         const buttons = this.buttons;
         if (part2 === 'released')
-            for (let id in buttons) {
-                if (buttons.hasOwnProperty(id)) {
-                    this.buttons[id].setReleased();
-                }
-            }
-        if (FhemProgSwitch.channels.indexOf(value) > -1)
-            buttons[value].setPressed();
+            buttons.forEach((value) => value.setReleased());
+
+        if (buttons.has(value))
+            buttons.get(value)!.setPressed();
     }
 }
 

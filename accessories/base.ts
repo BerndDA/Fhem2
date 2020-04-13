@@ -1,6 +1,6 @@
 import { IFhemObservable } from '../client/broker';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
-import { Logging } from 'homebridge';
+import { Logging, Service, Characteristic } from 'homebridge';
 
 
 export abstract class FhemAccessory {
@@ -9,8 +9,6 @@ export abstract class FhemAccessory {
     log: Logging;
     fhemName: string;
     fhemClient: IFhemClient;
-    static Service: any;
-    static Characteristic: any;
 
     protected constructor(data, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
@@ -47,22 +45,23 @@ export abstract class FhemAccessory {
 
     abstract setValueFromFhem(value: string, part2?: string): void;
 
-    protected abstract getDeviceServices(): any[];
+    protected abstract getDeviceServices(): Service[];
 
     getServices(): any[] {
-        const informationService = new FhemAccessory.Service.AccessoryInformation();
+        //const informationService = new Service.AccessoryInformation(this.name,"info");
 
-        informationService
-            .setCharacteristic(FhemAccessory.Characteristic.Manufacturer, 'FHEM')
-            .setCharacteristic(FhemAccessory.Characteristic.Model, this.data.Internals.TYPE)
-            .setCharacteristic(FhemAccessory.Characteristic.SerialNumber, this.data.Internals.NR);
-        const deviceServices = this.getDeviceServices();
-        deviceServices.forEach((element) => {
-            element.setCharacteristic(FhemAccessory.Characteristic.Name,
-                this.data.Attributes.siriName ? this.data.Attributes.siriName : this.data.Name);
-        });
+        //informationService
+        //    .setCharacteristic(Characteristic.Manufacturer, 'FHEM')
+        //    .setCharacteristic(Characteristic.Model, this.data.Internals.TYPE)
+        //    .setCharacteristic(Characteristic.SerialNumber, this.data.Internals.NR);
+        //const deviceServices = this.getDeviceServices();
+        ////deviceServices.forEach((element) => {
+        ////    element.setCharacteristic(Characteristic.Name,
+        ////        this.data.Attributes.siriName ? this.data.Attributes.siriName : this.data.Name);
+        ////});
 
-        return [informationService].concat(deviceServices);
+        //return [informationService].concat(deviceServices);
+        return this.getDeviceServices();
     }
 
     identify(callback) {

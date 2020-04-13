@@ -5,14 +5,22 @@ import Fhemclient = require('../client/fhemclient');
 import IFhemClient = Fhemclient.IFhemClient;
 import Broker = require('../client/broker');
 import IFhemObservable = Broker.IFhemObservable;
+import {
+    Service,
+    Characteristic,
+    CharacteristicEventTypes,
+    CharacteristicGetCallback,
+    CharacteristicValue,
+    CharacteristicSetCallback
+} from 'homebridge';
 
 export class FhemLametricRemote extends FhemAccessory {
-    private active;
-    private activeIdentifier;
-    private configuredName;
-    private sleepDiscoveryMode;
-    private remoteKey;
-    private powerPlug:string;
+    private active!: Characteristic;
+    private activeIdentifier!: Characteristic;
+    private configuredName!: Characteristic;
+    private sleepDiscoveryMode!: Characteristic;
+    private remoteKey!: Characteristic;
+    private powerPlug: string;
 
     constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
@@ -24,86 +32,87 @@ export class FhemLametricRemote extends FhemAccessory {
     }
 
     setValueFromFhem(value: string, part2?: string): void {
-        if(value==='on')
-            this.active.setValue(FhemAccessory.Characteristic.Active.ACTIVE, undefined, 'fhem');
+        if (value === 'on')
+            this.active.setValue(Characteristic.Active.ACTIVE, undefined, 'fhem');
         if (value === 'off')
-            this.active.setValue(FhemAccessory.Characteristic.Active.INACTIVE, undefined, 'fhem');
+            this.active.setValue(Characteristic.Active.INACTIVE, undefined, 'fhem');
     }
 
-    private activeId:Number = 0;
+    private activeId: CharacteristicValue = 0;
 
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.Television(this.name);
-        this.active = service.getCharacteristic(FhemAccessory.Characteristic.Active);
+    getDeviceServices(): Service[] {
+        const service = new Service.Television(this.name, '');
+        this.active = service.getCharacteristic(Characteristic.Active)!;
 
-        this.active.on('get', (cb) => {
+        this.active.on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => {
             this.getFhemStatus().then(status => cb(null,
-                status === 'on' ? FhemAccessory.Characteristic.Active.ACTIVE
-                : FhemAccessory.Characteristic.Active.INACTIVE));
+                status === 'on' ?Characteristic.Active.ACTIVE
+                : Characteristic.Active.INACTIVE));
         });
 
-        this.active.on('set', (value: Number, cb, context:string) => {
-            if (context !== 'fhem') {
-                if (value === FhemAccessory.Characteristic.Active.ACTIVE) {
-                    this.turnOn();
-                    this.setFhemReadingForDevice(this.powerPlug, null, 'on');
-                } else {
-                    this.turnOff();
-                    this.setFhemReadingForDevice(this.powerPlug, null, 'off');
+        this.active.on(CharacteristicEventTypes.SET,
+            (value: CharacteristicValue, cb: CharacteristicSetCallback, context: string) => {
+                if (context !== 'fhem') {
+                    if (value === Characteristic.Active.ACTIVE) {
+                        this.turnOn();
+                        this.setFhemReadingForDevice(this.powerPlug, null, 'on');
+                    } else {
+                        this.turnOff();
+                        this.setFhemReadingForDevice(this.powerPlug, null, 'off');
+                    }
                 }
-            }
-            cb();
-        });
-       
-        this.activeIdentifier = service.getCharacteristic(FhemAccessory.Characteristic.ActiveIdentifier);
-        this.activeIdentifier.on('get', (cb) => {
+                cb();
+            });
+
+        this.activeIdentifier = service.getCharacteristic(Characteristic.ActiveIdentifier)!;
+        this.activeIdentifier.on(CharacteristicEventTypes.GET, (cb) => {
             cb(null, this.activeId);
         });
-        this.activeIdentifier.on('set', (value: Number, cb) => {
+        this.activeIdentifier.on(CharacteristicEventTypes.SET, (value: CharacteristicValue, cb) => {
             this.activeId = value;
-             cb();
-        });
-
-        this.configuredName = service.getCharacteristic(FhemAccessory.Characteristic.ConfiguredName);
-        this.configuredName.on('get', (cb) => {
-            cb(null, 'lametr');
-        });
-        this.configuredName.on('set', (value, cb) => {
             cb();
         });
 
-        this.sleepDiscoveryMode = service.getCharacteristic(FhemAccessory.Characteristic.SleepDiscoveryMode);
-        this.sleepDiscoveryMode.on('get', (cb) => {
-            cb(null, FhemAccessory.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
+        this.configuredName = service.getCharacteristic(Characteristic.ConfiguredName)!;
+        this.configuredName.on(CharacteristicEventTypes.GET, (cb) => {
+            cb(null, 'lametr');
+        });
+        this.configuredName.on(CharacteristicEventTypes.SET, (_value, cb) => {
+            cb();
         });
 
-        this.remoteKey = service.getCharacteristic(FhemAccessory.Characteristic.RemoteKey);
-        this.remoteKey.on('set', this.setKey.bind(this));
+        this.sleepDiscoveryMode = service.getCharacteristic(Characteristic.SleepDiscoveryMode)!;
+        this.sleepDiscoveryMode.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => {
+            cb(null, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
+        });
+
+        this.remoteKey = service.getCharacteristic(Characteristic.RemoteKey)!;
+        this.remoteKey.on(CharacteristicEventTypes.SET, this.setKey.bind(this));
 
         return [service];
     }
 
     private turnOn() {
-        this.setFhemStatus("on");
-        this.setFhemStatus("play");
+        this.setFhemStatus('on');
+        this.setFhemStatus('play');
     }
 
     private turnOff() {
-        this.setFhemStatus("stop");
-        this.setFhemStatus("off");
+        this.setFhemStatus('stop');
+        this.setFhemStatus('off');
     }
 
-    private setKey(value: Number, cb) {
-        this.log("key pressed: " + value);
-        if(value === FhemAccessory.Characteristic.RemoteKey.ARROW_RIGHT)
+    private setKey(value: CharacteristicValue, cb: CharacteristicSetCallback) {
+        this.log(`key pressed: ${value}`);
+        if (value === Characteristic.RemoteKey.ARROW_RIGHT)
             this.setFhemStatus('channelUp');
-        if (value === FhemAccessory.Characteristic.RemoteKey.ARROW_LEFT)
+        if (value === Characteristic.RemoteKey.ARROW_LEFT)
             this.setFhemStatus('channelDown');
-        if (value === FhemAccessory.Characteristic.RemoteKey.ARROW_UP)
+        if (value === Characteristic.RemoteKey.ARROW_UP)
             this.setFhemStatus('volumeUp');
-        if (value === FhemAccessory.Characteristic.RemoteKey.ARROW_DOWN)
+        if (value === Characteristic.RemoteKey.ARROW_DOWN)
             this.setFhemStatus('volumeDown');
-        if (value === FhemAccessory.Characteristic.RemoteKey.SELECT) {
+        if (value === Characteristic.RemoteKey.SELECT) {
             this.getFhemStatus().then(status => {
                 if (status === 'on') {
                     this.turnOff();

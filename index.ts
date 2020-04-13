@@ -31,9 +31,7 @@ accessoryTypes['progswitch'] = FhemProgSwitch;
 accessoryTypes['updownswitch'] = FhemDoubleTapSwitch;
 
 export default function(homebridge) {
-    FhemAccessory.Service = homebridge.hap.Service;
-    FhemAccessory.Characteristic = homebridge.hap.Characteristic;
-    FhemAccessory.Characteristic.CurrentHeatingCoolingState.AUTO = 3;
+   
     homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform);
 };
 

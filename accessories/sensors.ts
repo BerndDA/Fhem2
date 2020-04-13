@@ -1,8 +1,9 @@
 import { FhemAccessory } from './base';
 import { FhemValueType } from '../client/fhemclient';
+import { Characteristic, Service, CharacteristicEventTypes, CharacteristicGetCallback } from 'homebridge';
 
 abstract class FhemSensor extends FhemAccessory {
-    protected characteristic: any;
+    protected characteristic!: Characteristic;
 
     getState(callback): void {
         this.getFhemStatus().then(status => callback(null, status === 'on'));
@@ -15,35 +16,35 @@ abstract class FhemSensor extends FhemAccessory {
 
 export class FhemMotionSensor extends FhemSensor {
 
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.MotionSensor(this.name);
-        this.characteristic = service.getCharacteristic(FhemAccessory.Characteristic.MotionDetected);
+    getDeviceServices(): Service[] {
+        const service = new Service.MotionSensor(this.name);
+        this.characteristic = service.getCharacteristic(Characteristic.MotionDetected)!;
         this.characteristic
-            .on('get', this.getState.bind(this));
+            .on(CharacteristicEventTypes.GET, this.getState.bind(this));
         return [service];
     }
 }
 
 export class FhemContactSensor extends FhemSensor {
 
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.ContactSensor(this.name);
-        this.characteristic = service.getCharacteristic(FhemAccessory.Characteristic.ContactSensorState);
+    getDeviceServices(): Service[] {
+        const service = new Service.ContactSensor(this.name);
+        this.characteristic = service.getCharacteristic(Characteristic.ContactSensorState)!;
         this.characteristic
-            .on('get', this.getState.bind(this));
+            .on(CharacteristicEventTypes.GET, this.getState.bind(this));
         return [service];
     }
 }
 
 export class FhemTemperatureSensor extends FhemAccessory {
 
-    private currentTemperature: any;
+    private currentTemperature!: Characteristic;
 
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.TemperatureSensor(this.name);
-        this.currentTemperature = service.getCharacteristic(FhemAccessory.Characteristic.CurrentTemperature);
+    getDeviceServices(): Service[] {
+        const service = new Service.TemperatureSensor(this.name);
+        this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature)!;
         this.currentTemperature.setProps({ minValue: -25 });
-        this.currentTemperature.on('get', this.getCurrentTemp.bind(this));
+        this.currentTemperature.on(CharacteristicEventTypes.GET, this.getCurrentTemp.bind(this));
         return [service];
     }
 
@@ -54,7 +55,7 @@ export class FhemTemperatureSensor extends FhemAccessory {
         }
     }
 
-    getCurrentTemp(callback): void {
+    getCurrentTemp(callback: CharacteristicGetCallback): void {
         this.getFhemNamedValue(FhemValueType.Readings, 'temperature').then((temp) =>
             callback(null, Number(temp))
         );
@@ -63,12 +64,12 @@ export class FhemTemperatureSensor extends FhemAccessory {
 
 export class FhemTemperatureHumiditySensor extends FhemTemperatureSensor {
 
-    private currentHumidity: any;
+    private currentHumidity!: Characteristic;
 
-    getDeviceServices(): any[] {
-        const service = new FhemAccessory.Service.HumiditySensor(this.name);
-        this.currentHumidity = service.getCharacteristic(FhemAccessory.Characteristic.CurrentRelativeHumidity);
-        this.currentHumidity.on('get', this.getCurrentHum.bind(this));
+    getDeviceServices(): Service[] {
+        const service = new Service.HumiditySensor(this.name);
+        this.currentHumidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity)!;
+        this.currentHumidity.on(CharacteristicEventTypes.GET, this.getCurrentHum.bind(this));
         return [service].concat(super.getDeviceServices());
     }
 
@@ -80,7 +81,7 @@ export class FhemTemperatureHumiditySensor extends FhemTemperatureSensor {
         super.setValueFromFhem(reading, value);
     }
 
-    getCurrentHum(callback): void {
+    getCurrentHum(callback: CharacteristicGetCallback): void {
         this.getFhemNamedValue(FhemValueType.Readings, 'humidity').then((hum) =>
             callback(null, Number(hum))
         );
