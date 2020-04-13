@@ -70,13 +70,13 @@ export class FhemClient implements IFhemClient {
     async subscribeToFhem() {
         try {
             //delete the notification
-            let url = encodeURI(this.baseUrl + '/fhem?cmd=delete nfHomekitdev&XHR=1');
+            let url = encodeURI(`${this.baseUrl}/fhem?cmd=delete nfHomekit_${os.hostname()}&XHR=1`);
             await getContent(url);
 
             const address = await dns.promises.resolve4(os.hostname());
             const command =
                 encodeURIComponent(
-                    `define nfHomekitdev notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${
+                    `define nfHomekit_${os.hostname()} notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${
                     address[0]}:2000/$NAME/$new", callback=>sub($$$){} })}`);
             url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
             await getContent(url);
@@ -92,5 +92,6 @@ export class FhemClient implements IFhemClient {
                 this.broker.notify(splitted[1], splitted[2], splitted.length > 3 ? splitted[3] : null);
             }
         }).listen(2000);
+        
     }
 }
