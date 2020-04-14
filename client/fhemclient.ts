@@ -12,8 +12,8 @@ export interface IFhemClient {
     subscribeToFhem(): void;
     getDeviceList(): Promise<any>;
     getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null>;
-    setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean): void;
-    executeCommand(cmd: string): void;
+    setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean): Promise<void>;
+    executeCommand(cmd: string): Promise<void>;
 }
 
 export enum FhemValueType {
@@ -50,7 +50,7 @@ export class FhemClient implements IFhemClient {
         return null;
     }
 
-    setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false): void {
+    async setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false) {
         let cmd: string;
         if (!force) {
             cmd = `set ${device} `;
@@ -59,12 +59,16 @@ export class FhemClient implements IFhemClient {
         }
         if (reading) cmd += reading + ' ';
         cmd += value;
-        this.executeCommand(cmd);
+        await this.executeCommand(cmd);
     }
 
-    executeCommand(cmd: string): void {
-        const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-        getContent(url).catch(e => this.log.error(`error executing: ${cmd} ${e}`));
+    async executeCommand(cmd: string) {
+        try {
+            const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
+            await getContent(url);
+        } catch (e) {
+            this.log.error(`error executing: ${cmd} ${e}`);
+        }
     }
 
     async subscribeToFhem() {

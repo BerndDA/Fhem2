@@ -20,16 +20,16 @@ export abstract class FhemAccessory {
         fhemObservable.on(this.fhemName, this.setValueFromFhem.bind(this));
     }
 
-    protected setFhemStatus(status: string): void {
-        this.setFhemReading(null, status);
+    protected async setFhemStatus(status: string) {
+        await this.setFhemReading(null, status);
     }
 
-    protected setFhemReading(reading: string|null, value: string): void {
-        this.setFhemReadingForDevice(this.fhemName, reading, value);
+    protected async setFhemReading(reading: string|null, value: string) {
+        await this.setFhemReadingForDevice(this.fhemName, reading, value);
     }
 
-    protected setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false): void {
-        this.fhemClient.setFhemReadingForDevice(device, reading, value, force);
+    protected async setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false) {
+        await this.fhemClient.setFhemReadingForDevice(device, reading, value, force);
     }
 
     protected async getFhemStatus(): Promise<string|null> {

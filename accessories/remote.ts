@@ -83,14 +83,14 @@ export class FhemLametricRemote extends FhemAccessory {
         return [service];
     }
 
-    private turnOn() {
-        this.setFhemStatus("on");
-        this.setFhemStatus("play");
+    private async turnOn() {
+        await this.setFhemStatus("on");
+        await this.setFhemStatus("play");
     }
 
-    private turnOff() {
-        this.setFhemStatus("stop");
-        this.setFhemStatus("off");
+    private async turnOff() {
+        await this.setFhemStatus("stop");
+        await this.setFhemStatus("off");
     }
 
     private setKey(value: Number, cb) {
