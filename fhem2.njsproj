@@ -10,6 +10,7 @@
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
     <Environment>DEBUG=INFO</Environment>
+    <TypeScriptBuildMode>true</TypeScriptBuildMode>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -18,7 +19,7 @@
     <ProjectGuid>cab60c90-eaef-4096-b280-cfb22dfafc8d</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>../homebridge/bin/homebridge</StartupFile>
+    <StartupFile>node_modules/homebridge/bin/homebridge</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>

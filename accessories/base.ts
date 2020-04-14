@@ -47,21 +47,16 @@ export abstract class FhemAccessory {
 
     protected abstract getDeviceServices(): Service[];
 
-    getServices(): any[] {
-        //const informationService = new Service.AccessoryInformation(this.name,"info");
+    getServices(): Service[] {
+        const informationService = new Service.AccessoryInformation();
 
-        //informationService
-        //    .setCharacteristic(Characteristic.Manufacturer, 'FHEM')
-        //    .setCharacteristic(Characteristic.Model, this.data.Internals.TYPE)
-        //    .setCharacteristic(Characteristic.SerialNumber, this.data.Internals.NR);
-        //const deviceServices = this.getDeviceServices();
-        ////deviceServices.forEach((element) => {
-        ////    element.setCharacteristic(Characteristic.Name,
-        ////        this.data.Attributes.siriName ? this.data.Attributes.siriName : this.data.Name);
-        ////});
+        informationService
+            .setCharacteristic(Characteristic.Manufacturer, 'FHEM')
+            .setCharacteristic(Characteristic.Model, this.data.Internals.TYPE)
+            .setCharacteristic(Characteristic.SerialNumber, this.data.Internals.NR);
+        const deviceServices = this.getDeviceServices();
 
-        //return [informationService].concat(deviceServices);
-        return this.getDeviceServices();
+        return [informationService].concat(deviceServices);
     }
 
     identify(callback) {
