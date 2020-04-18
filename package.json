@@ -19,7 +19,7 @@
     "typescript": "^3.8.0"
   },
   "devDependencies": {
-    "homebridge": "^0.4.54-beta.51"
+    "homebridge": "file:../homebridge"
   },
   "scripts": {
     "install": "tsc"

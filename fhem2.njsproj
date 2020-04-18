@@ -19,7 +19,7 @@
     <ProjectGuid>cab60c90-eaef-4096-b280-cfb22dfafc8d</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>node_modules/homebridge/bin/homebridge</StartupFile>
+    <StartupFile>../homebridge/bin/homebridge</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>
