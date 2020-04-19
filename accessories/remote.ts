@@ -1,10 +1,8 @@
 'use strict';
 
 import { FhemAccessory } from './base';
-import Fhemclient = require('../client/fhemclient');
-import IFhemClient = Fhemclient.IFhemClient;
-import Broker = require('../client/broker');
-import IFhemObservable = Broker.IFhemObservable;
+import { IFhemClient } from '../client/fhemclient';
+import { IFhemObservable } from '../client/broker';
 import {
     Service,
     Characteristic,

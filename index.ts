@@ -10,7 +10,7 @@ import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTempera
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accessories/thermo';
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
 import { FhemLametricRemote } from './accessories/remote';
-import { Logging, API, PlatformConfig, LegacyPlatformPlugin, AccessoryPlugin } from 'homebridge'
+import { Logging, API, PlatformConfig, StaticPlatformPlugin, AccessoryPlugin } from 'homebridge'
 
 let accessoryTypes: { [name: string]: any } = {};
 accessoryTypes['heating'] = FhemThermostat;
@@ -31,10 +31,10 @@ accessoryTypes['updownswitch'] = FhemDoubleTapSwitch;
 
 export default function(homebridge: API) {
 
-    homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform as any);
+    homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform);
 };
 
-class Fhem2Platform implements LegacyPlatformPlugin {
+class Fhem2Platform implements StaticPlatformPlugin {
     log: Logging;
     filter: string[];
     fhemBroker: IFhemObservable;
