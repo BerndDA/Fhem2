@@ -8,10 +8,11 @@ import dns = require('dns');
 import os = require('os');
 import getContent from '../util/promiseHttpGet';
 import { Logging } from 'homebridge';
+import { FhemDeviceList } from './fhemtypes';
 
 export interface IFhemClient {
     subscribeToFhem(): void;
-    getDeviceList(): Promise<any>;
+    getDeviceList(): Promise<FhemDeviceList>;
     getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string | null>;
     setFhemReadingForDevice(device: string, reading: string | null, value: string, force: boolean): Promise<void>;
     executeCommand(cmd: string): Promise<void>;
@@ -35,7 +36,7 @@ export class FhemClient implements IFhemClient {
         this.baseUrl = baseUrl;
     }
 
-    async getDeviceList(): Promise<any> {
+    async getDeviceList(): Promise<FhemDeviceList> {
         const cmd = 'jsonlist2';
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
         return getContent(url);

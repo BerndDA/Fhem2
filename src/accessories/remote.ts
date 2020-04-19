@@ -12,6 +12,7 @@ import {
     CharacteristicSetCallback,
     Logging
 } from 'homebridge';
+import { FhemDevice } from '../client/fhemtypes';
 
 export class FhemLametricRemote extends FhemAccessory {
     private active!: Characteristic;
@@ -21,7 +22,7 @@ export class FhemLametricRemote extends FhemAccessory {
     private remoteKey!: Characteristic;
     private powerPlug: string;
 
-    constructor(data: any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data: FhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         this.powerPlug = data.Attributes.powerPlug;
         fhemObservable.on(this.powerPlug, (value) => {

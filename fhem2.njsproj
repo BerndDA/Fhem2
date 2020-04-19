@@ -74,6 +74,9 @@
     <TypeScriptCompile Include="src\client\fhemclient.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\client\fhemtypes.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\util\promiseHttpGet.ts">
       <SubType>Code</SubType>

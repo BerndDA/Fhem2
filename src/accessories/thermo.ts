@@ -10,6 +10,7 @@ import {
     CharacteristicValue,
     CharacteristicSetCallback
 } from 'homebridge';
+import { FhemDevice } from '../client/fhemtypes';
 
 export class FhemThermostat extends FhemAccessory {
 
@@ -21,7 +22,7 @@ export class FhemThermostat extends FhemAccessory {
     private currentRelativeHumidity!: Characteristic;
     protected tempsensor: string;
 
-    constructor(data: any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data: FhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Internals.TEMPSENSOR;
@@ -118,7 +119,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
     private currentRelativeHumidity!: Characteristic;
     protected tempsensor: string;
 
-    constructor(data: any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data: FhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Attributes.tempsensor;

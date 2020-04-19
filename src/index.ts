@@ -57,16 +57,16 @@ class Fhem2Platform implements StaticPlatformPlugin {
     private async compileAccessories(): Promise<AccessoryPlugin[]> {
         const deviceList = await this.fhemClient.getDeviceList();
         const acc: AccessoryPlugin[] = [];
-        for (let i = 0; i < deviceList.Results.length; i++) {
-            const device = deviceList.Results[i];
-            if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) continue;
+        deviceList.Results.forEach((device) => {
+            if (!device.Attributes.homebridgeType || !accessoryTypes[device.Attributes.homebridgeType]) return;
+            if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) === -1) return;
 
-            if (this.filter.length !== 0 && this.filter.indexOf(device.Attributes.homebridgeType) === -1) continue;
             const accessory =
                 new accessoryTypes[device.Attributes.homebridgeType
                 ](device, this.log, this.fhemClient, this.fhemBroker);
             acc.push(accessory);
-        }
+        });
+       
         return acc;
     }
 }
