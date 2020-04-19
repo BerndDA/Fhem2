@@ -12,7 +12,7 @@ import {
     CharacteristicSetCallback,
     Logging
 } from 'homebridge';
-import { FhemDevice } from '../client/fhemtypes';
+import { IFhemDevice as FhemDevice } from '../client/fhemtypes';
 
 export class FhemLametricRemote extends FhemAccessory {
     private active!: Characteristic;

@@ -8,7 +8,7 @@ import dns = require('dns');
 import os = require('os');
 import getContent from '../util/promiseHttpGet';
 import { Logging } from 'homebridge';
-import { FhemDeviceList } from './fhemtypes';
+import { IFhemDeviceList as FhemDeviceList } from './fhemtypes';
 
 export interface IFhemClient {
     subscribeToFhem(): void;
