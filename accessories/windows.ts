@@ -19,11 +19,11 @@ export class FhemDoubleTapSwitch extends FhemAccessory {
     getDeviceServices(): any[] {
         const sUp = new Service.Switch('up', 'up');
         this.characteristicUp = sUp.getCharacteristic(Characteristic.On)!
-            .on(CharacteristicEventTypes.GET, (cb) => cb(null, false))
+            .on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => cb(null, false))
             .on(CharacteristicEventTypes.SET, this.setUpState.bind(this));
         const sDown = new Service.Switch('down', 'down');
         this.characteristicDown = sDown.getCharacteristic(Characteristic.On)!
-            .on(CharacteristicEventTypes.GET, (cb) => cb(null, true))
+            .on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => cb(null, true))
             .on(CharacteristicEventTypes.SET, this.setDownState.bind(this));
 
         return [sUp, sDown];
@@ -39,7 +39,7 @@ export class FhemDoubleTapSwitch extends FhemAccessory {
         callback();
     }
 
-    setDownState(value: CharacteristicValue, callback:CharacteristicSetCallback, context: string): void {
+    setDownState(value: CharacteristicValue, callback: CharacteristicSetCallback, context: string): void {
         if (context !== 'fhem' && !value) {
             this.setFhemStatus('off');
             setTimeout(() => {
@@ -51,9 +51,9 @@ export class FhemDoubleTapSwitch extends FhemAccessory {
 }
 
 export class FhemWindowCovering extends FhemAccessory {
-    private currentPosition!:Characteristic;
-    private targetPosition!:Characteristic;
-    private positionState!:Characteristic;
+    private currentPosition!: Characteristic;
+    private targetPosition!: Characteristic;
+    private positionState!: Characteristic;
 
     setValueFromFhem(value: string, part2?: string): void {
         if (value === 'down') {
@@ -93,13 +93,13 @@ export class FhemWindowCovering extends FhemAccessory {
         return [service];
     }
 
-    getCurrentPosition(callback:CharacteristicGetCallback): void {
+    getCurrentPosition(callback: CharacteristicGetCallback): void {
         this.getFhemNamedValue(FhemValueType.Readings, 'position').then((pos) =>
             callback(null, 100 - Number(pos))
         );
     }
 
-    getPositionState(callback:CharacteristicGetCallback): void {
+    getPositionState(callback: CharacteristicGetCallback): void {
         this.getFhemStatus().then((status) => {
             if (status === 'down' || status === 'closes')
                 callback(null, Characteristic.PositionState.INCREASING);
@@ -109,7 +109,7 @@ export class FhemWindowCovering extends FhemAccessory {
         });
     }
 
-    setTargetPosition(value: CharacteristicValue, callback:CharacteristicSetCallback, context: string): void {
+    setTargetPosition(value: CharacteristicValue, callback: CharacteristicSetCallback, context: string): void {
         if (context !== 'fhem') {
             if (value === 100) this.setFhemStatus('opens');
             else if (value === 0) this.setFhemStatus('closes');

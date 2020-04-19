@@ -11,7 +11,8 @@ import {
     CharacteristicEventTypes,
     CharacteristicGetCallback,
     CharacteristicValue,
-    CharacteristicSetCallback
+    CharacteristicSetCallback,
+    Logging
 } from 'homebridge';
 
 export class FhemLametricRemote extends FhemAccessory {
@@ -22,7 +23,7 @@ export class FhemLametricRemote extends FhemAccessory {
     private remoteKey!: Characteristic;
     private powerPlug: string;
 
-    constructor(data, log, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data:any, log:Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         this.powerPlug = data.Attributes.powerPlug;
         fhemObservable.on(this.powerPlug, (value) => {
@@ -65,19 +66,19 @@ export class FhemLametricRemote extends FhemAccessory {
             });
 
         this.activeIdentifier = service.getCharacteristic(Characteristic.ActiveIdentifier)!;
-        this.activeIdentifier.on(CharacteristicEventTypes.GET, (cb) => {
+        this.activeIdentifier.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => {
             cb(null, this.activeId);
         });
-        this.activeIdentifier.on(CharacteristicEventTypes.SET, (value: CharacteristicValue, cb) => {
+        this.activeIdentifier.on(CharacteristicEventTypes.SET, (value: CharacteristicValue, cb:CharacteristicSetCallback) => {
             this.activeId = value;
             cb();
         });
 
         this.configuredName = service.getCharacteristic(Characteristic.ConfiguredName)!;
-        this.configuredName.on(CharacteristicEventTypes.GET, (cb) => {
+        this.configuredName.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => {
             cb(null, 'lametr');
         });
-        this.configuredName.on(CharacteristicEventTypes.SET, (_value, cb) => {
+        this.configuredName.on(CharacteristicEventTypes.SET, (_value:CharacteristicValue, cb:CharacteristicSetCallback) => {
             cb();
         });
 

@@ -4,16 +4,15 @@
 
 import { FhemBroker, IFhemObservable } from './client/broker';
 import { IFhemClient, FhemClient } from './client/fhemclient';
-import { FhemAccessory } from './accessories/base';
 import { FhemSwitch, FhemLightbulb, FhemOutlet, FhemProgSwitch } from './accessories/switches';
 import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTemperatureHumiditySensor, FhemTempKW9010 }
     from './accessories/sensors';
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accessories/thermo';
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
 import { FhemLametricRemote } from './accessories/remote';
-import {Logging} from 'homebridge'
+import { Logging, API, PlatformConfig, LegacyPlatformPlugin, AccessoryPlugin } from 'homebridge'
 
-let accessoryTypes: { [name: string]: any } = { };
+let accessoryTypes: { [name: string]: any } = {};
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
 accessoryTypes['heatingEQ3'] = FhemEqivaThermostat;
@@ -30,25 +29,18 @@ accessoryTypes['lametricremote'] = FhemLametricRemote;
 accessoryTypes['progswitch'] = FhemProgSwitch;
 accessoryTypes['updownswitch'] = FhemDoubleTapSwitch;
 
-export default function(homebridge) {
-   
-    homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform);
+export default function(homebridge: API) {
+
+    homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform as any);
 };
 
-interface IConfig {
-    server: string;
-    port: number;
-    filter: string[];
-    ssl: boolean;
-}
-
-class Fhem2Platform {
+class Fhem2Platform implements LegacyPlatformPlugin {
     log: Logging;
     filter: string[];
     fhemBroker: IFhemObservable;
     fhemClient: IFhemClient;
 
-    constructor(log: Logging, config: IConfig) {
+    constructor(log: Logging, config: PlatformConfig) {
         this.log = log;
         this.filter = config.filter;
         const broker = new FhemBroker();
@@ -57,7 +49,7 @@ class Fhem2Platform {
         this.fhemClient.subscribeToFhem();
     }
 
-    accessories(cb) {
+    accessories(cb: (foundAccessories: AccessoryPlugin[]) => void): void {
         this.compileAccessories().then(res => cb(res))
             .catch(e => this.log.error(e));
     }

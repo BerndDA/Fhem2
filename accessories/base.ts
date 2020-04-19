@@ -1,16 +1,16 @@
 import { IFhemObservable } from '../client/broker';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
-import { Logging, Service, Characteristic } from 'homebridge';
+import { Logging, Service, Characteristic, AccessoryPlugin } from 'homebridge';
 
 
-export abstract class FhemAccessory {
+export abstract class FhemAccessory implements AccessoryPlugin {
     name: string;
     data: any;
     log: Logging;
     fhemName: string;
     fhemClient: IFhemClient;
 
-    protected constructor(data, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    protected constructor(data:any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
@@ -59,8 +59,7 @@ export abstract class FhemAccessory {
         return [informationService].concat(deviceServices);
     }
 
-    identify(callback) {
+    identify() {
         this.log.info(`Identify requested! ${this.name}`);
-        callback(); // success
     }
 }

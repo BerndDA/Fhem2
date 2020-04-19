@@ -62,7 +62,7 @@ export class FhemOutlet extends FhemOnOffSwitchable {
             .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
             .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
         service.getCharacteristic(Characteristic.OutletInUse)!
-            .on(CharacteristicEventTypes.GET, (callback) => { callback(null, true); });
+            .on(CharacteristicEventTypes.GET, (callback:CharacteristicGetCallback) => { callback(null, true); });
         return [service];
     }
 }
