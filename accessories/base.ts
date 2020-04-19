@@ -10,7 +10,7 @@ export abstract class FhemAccessory implements AccessoryPlugin {
     fhemName: string;
     fhemClient: IFhemClient;
 
-    protected constructor(data:any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    protected constructor(data: any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;
@@ -23,23 +23,25 @@ export abstract class FhemAccessory implements AccessoryPlugin {
         await this.setFhemReading(null, status);
     }
 
-    protected async setFhemReading(reading: string|null, value: string) {
+    protected async setFhemReading(reading: string | null, value: string) {
         await this.setFhemReadingForDevice(this.fhemName, reading, value);
     }
 
-    protected async setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false) {
+    protected async setFhemReadingForDevice(device: string, reading: string | null, value: string,
+        force: boolean = false) {
         await this.fhemClient.setFhemReadingForDevice(device, reading, value, force);
     }
 
-    protected async getFhemStatus(): Promise<string|null> {
+    protected async getFhemStatus(): Promise<string | null> {
         return this.getFhemNamedValue(FhemValueType.Internals, 'STATE');
     }
 
-    protected async getFhemNamedValue(fhemType: FhemValueType, name: string): Promise<string|null> {
+    protected async getFhemNamedValue(fhemType: FhemValueType, name: string): Promise<string | null> {
         return this.getFhemNamedValueForDevice(this.fhemName, fhemType, name);
     }
 
-    protected async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null> {
+    protected async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string):
+        Promise<string | null> {
         return this.fhemClient.getFhemNamedValueForDevice(device, fhemType, name);
     }
 

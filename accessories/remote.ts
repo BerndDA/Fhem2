@@ -21,7 +21,7 @@ export class FhemLametricRemote extends FhemAccessory {
     private remoteKey!: Characteristic;
     private powerPlug: string;
 
-    constructor(data:any, log:Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data: any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         this.powerPlug = data.Attributes.powerPlug;
         fhemObservable.on(this.powerPlug, (value) => {
@@ -45,7 +45,7 @@ export class FhemLametricRemote extends FhemAccessory {
 
         this.active.on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => {
             this.getFhemStatus().then(status => cb(null,
-                status === 'on' ?Characteristic.Active.ACTIVE
+                status === 'on' ? Characteristic.Active.ACTIVE
                 : Characteristic.Active.INACTIVE));
         });
 
@@ -64,24 +64,26 @@ export class FhemLametricRemote extends FhemAccessory {
             });
 
         this.activeIdentifier = service.getCharacteristic(Characteristic.ActiveIdentifier)!;
-        this.activeIdentifier.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => {
+        this.activeIdentifier.on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => {
             cb(null, this.activeId);
         });
-        this.activeIdentifier.on(CharacteristicEventTypes.SET, (value: CharacteristicValue, cb:CharacteristicSetCallback) => {
-            this.activeId = value;
-            cb();
-        });
+        this.activeIdentifier.on(CharacteristicEventTypes.SET,
+            (value: CharacteristicValue, cb: CharacteristicSetCallback) => {
+                this.activeId = value;
+                cb();
+            });
 
         this.configuredName = service.getCharacteristic(Characteristic.ConfiguredName)!;
-        this.configuredName.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => {
+        this.configuredName.on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => {
             cb(null, 'lametr');
         });
-        this.configuredName.on(CharacteristicEventTypes.SET, (_value:CharacteristicValue, cb:CharacteristicSetCallback) => {
-            cb();
-        });
+        this.configuredName.on(CharacteristicEventTypes.SET,
+            (_value: CharacteristicValue, cb: CharacteristicSetCallback) => {
+                cb();
+            });
 
         this.sleepDiscoveryMode = service.getCharacteristic(Characteristic.SleepDiscoveryMode)!;
-        this.sleepDiscoveryMode.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => {
+        this.sleepDiscoveryMode.on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => {
             cb(null, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
         });
 
@@ -92,13 +94,13 @@ export class FhemLametricRemote extends FhemAccessory {
     }
 
     private async turnOn() {
-        await this.setFhemStatus("on");
-        await this.setFhemStatus("play");
+        await this.setFhemStatus('on');
+        await this.setFhemStatus('play');
     }
 
     private async turnOff() {
-        await this.setFhemStatus("stop");
-        await this.setFhemStatus("off");
+        await this.setFhemStatus('stop');
+        await this.setFhemStatus('off');
     }
 
     private setKey(value: CharacteristicValue, cb: CharacteristicSetCallback) {

@@ -12,8 +12,8 @@ import { Logging } from 'homebridge';
 export interface IFhemClient {
     subscribeToFhem(): void;
     getDeviceList(): Promise<any>;
-    getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null>;
-    setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean): Promise<void>;
+    getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string | null>;
+    setFhemReadingForDevice(device: string, reading: string | null, value: string, force: boolean): Promise<void>;
     executeCommand(cmd: string): Promise<void>;
 }
 
@@ -41,7 +41,7 @@ export class FhemClient implements IFhemClient {
         return getContent(url);
     }
 
-    async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string|null> {
+    async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string | null> {
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
         const response = await getContent(url);
         if (response.Results.length > 0) {
@@ -51,7 +51,7 @@ export class FhemClient implements IFhemClient {
         return null;
     }
 
-    async setFhemReadingForDevice(device: string, reading: string|null, value: string, force: boolean = false) {
+    async setFhemReadingForDevice(device: string, reading: string | null, value: string, force: boolean = false) {
         let cmd: string;
         if (!force) {
             cmd = `set ${device} `;
@@ -81,7 +81,8 @@ export class FhemClient implements IFhemClient {
             const address = await dns.promises.resolve4(os.hostname());
             const command =
                 encodeURIComponent(
-                    `define nfHomekit_${os.hostname()} notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${
+                    `define nfHomekit_${os.hostname()
+                    } notify .* {my $new = $EVENT =~ s/: /\\//r;; HttpUtils_NonblockingGet({ url=>"http://${
                     address[0]}:2000/$NAME/$new", callback=>sub($$$){} })}`);
             url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
             await getContent(url);
@@ -92,11 +93,11 @@ export class FhemClient implements IFhemClient {
             res.statusCode = 200;
             res.end('ok');
             if (req.url) {
-                var splitted = req.url.toString().split('/');
+                const splitted = req.url.toString().split('/');
                 this.log.info(`fhem callback: ${req.url}`);
                 this.broker.notify(splitted[1], splitted[2], splitted.length > 3 ? splitted[3] : null);
             }
         }).listen(2000);
-        
+
     }
 }

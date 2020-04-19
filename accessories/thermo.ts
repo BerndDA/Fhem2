@@ -54,7 +54,7 @@ export class FhemThermostat extends FhemAccessory {
 
         this.temperatureDisplayUnits = service.getCharacteristic(Characteristic.TemperatureDisplayUnits)!;
         this.temperatureDisplayUnits.on(CharacteristicEventTypes.GET,
-                (cb:CharacteristicGetCallback) => cb(null, Characteristic.TemperatureDisplayUnits.CELSIUS))
+                (cb: CharacteristicGetCallback) => cb(null, Characteristic.TemperatureDisplayUnits.CELSIUS))
             .on(CharacteristicEventTypes.SET,
                 (value: CharacteristicValue, callback: CharacteristicSetCallback, context: string) => { callback(); });
 
@@ -118,12 +118,12 @@ export class FhemEqivaThermostat extends FhemAccessory {
     private currentRelativeHumidity!: Characteristic;
     protected tempsensor: string;
 
-    constructor(data:any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data: any, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         super(data, log, fhemClient, fhemObservable);
         //register on tempsensor
         this.tempsensor = this.data.Attributes.tempsensor;
         fhemObservable.on(this.tempsensor, this.setValueFromFhem.bind(this));
-        
+
     }
 
     getDeviceServices(): Service[] {
@@ -149,8 +149,11 @@ export class FhemEqivaThermostat extends FhemAccessory {
             .on(CharacteristicEventTypes.SET, this.setTargetTemp.bind(this));
 
         this.temperatureDisplayUnits = service.getCharacteristic(Characteristic.TemperatureDisplayUnits)!;
-        this.temperatureDisplayUnits.on(CharacteristicEventTypes.GET, (cb:CharacteristicGetCallback) => cb(null, Characteristic.TemperatureDisplayUnits.CELSIUS))
-            .on(CharacteristicEventTypes.SET, (value:CharacteristicValue, callback:CharacteristicSetCallback) => { callback(); });
+        this.temperatureDisplayUnits.on(CharacteristicEventTypes.GET,
+                (cb: CharacteristicGetCallback) => cb(null, Characteristic.TemperatureDisplayUnits.CELSIUS))
+            .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
+                callback();
+            });
 
         return [service];
     }

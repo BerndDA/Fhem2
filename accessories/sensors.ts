@@ -5,7 +5,7 @@ import { Characteristic, Service, CharacteristicEventTypes, CharacteristicGetCal
 abstract class FhemSensor extends FhemAccessory {
     protected characteristic!: Characteristic;
 
-    getState(callback:CharacteristicGetCallback): void {
+    getState(callback: CharacteristicGetCallback): void {
         this.getFhemStatus().then(status => callback(null, status === 'on'));
     }
 

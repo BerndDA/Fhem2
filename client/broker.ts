@@ -9,7 +9,7 @@ export interface IFhemObservable {
 }
 
 export interface IFhemBroker {
-    notify(topic: string, value1: string, value2: string|null): void
+    notify(topic: string, value1: string, value2: string | null): void
 }
 
 export class FhemBroker extends events.EventEmitter implements IFhemObservable, IFhemBroker {
