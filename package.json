@@ -2,6 +2,7 @@
   "name": "homebridge-fhem2",
   "version": "0.0.1",
   "description": "FHEM plugin for homebridge: https://github.com/nfarina/homebridge",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/BerndDA/Fhem2.git"

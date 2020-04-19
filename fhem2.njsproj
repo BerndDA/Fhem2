@@ -54,30 +54,28 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="accessories\base.ts">
+    <TypeScriptCompile Include="src\accessories\base.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="accessories\sensors.ts">
+    <TypeScriptCompile Include="src\accessories\sensors.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="accessories\switches.ts">
+    <TypeScriptCompile Include="src\accessories\switches.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="accessories\remote.ts">
+    <TypeScriptCompile Include="src\accessories\remote.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="accessories\thermo.ts">
+    <TypeScriptCompile Include="src\accessories\thermo.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="accessories\windows.ts">
+    <TypeScriptCompile Include="src\accessories\windows.ts" />
+    <TypeScriptCompile Include="src\client\broker.ts" />
+    <TypeScriptCompile Include="src\client\fhemclient.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="client\broker.ts" />
-    <TypeScriptCompile Include="client\fhemclient.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="index.ts" />
-    <TypeScriptCompile Include="util\promiseHttpGet.ts">
+    <TypeScriptCompile Include="src\index.ts" />
+    <TypeScriptCompile Include="src\util\promiseHttpGet.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>
@@ -87,9 +85,10 @@
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="client\" />
-    <Folder Include="accessories\" />
-    <Folder Include="util\" />
+    <Folder Include="src\client\" />
+    <Folder Include="src\accessories\" />
+    <Folder Include="src\" />
+    <Folder Include="src\util\" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
