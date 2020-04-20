@@ -83,6 +83,7 @@
     </TypeScriptCompile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="config.json.example" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="tsconfig.json" />

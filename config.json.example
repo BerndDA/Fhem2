@@ -1,0 +1,23 @@
+{
+	"mdns": { "interface": "192.168.188.28" },
+    "bridge": {
+        "name": "Homebridge",
+        "username": "CC:22:FF:E3:CE:44",
+        "port": 51826,
+        "pin": "089-00-184"
+    },
+    
+    "description": "This is an example configuration file with all supported devices. You can use this as a template for creating your own configuration file containing devices you actually own.",
+
+    "platforms": [
+      {
+        "platform": "Fhem2",
+        "name": "Fhem2",
+        "server": "fhem.fritz.box",
+        "port": 8084,
+        "filter": [ "lametricremote", "lightbulb" ]
+      }
+    ],
+
+    "accessories": []
+}
