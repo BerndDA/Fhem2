@@ -3,7 +3,7 @@ This is an example plugin for homebridge. It is used for bridging FHEM devices t
 
 On start a webhook via notify is added to FHEM that sends relevant events to the plugin. Please make sure port 2000 can be accessed from FHEM to your homebridge installation.
 
-# Quick Start
+## Quick Start
  * install using npm install -g
  * adapt config.json of homebridge
  * add custom-attribute "homebridgeType" to FHEM
@@ -11,7 +11,7 @@ On start a webhook via notify is added to FHEM that sends relevant events to the
 
 More extensive documentation in the works... 
 
-# Edit config.json
+## Edit config.json
 ```javascript
 "platforms": [
     {
@@ -28,7 +28,7 @@ More extensive documentation in the works...
   ]
 ```
 ***note:*** Authentication (auth) currently not supported
-# HombridgeTypes
+## HombridgeTypes
 ### switch, outlet, lightbulb
 support switching with STATE on|off
 ### motionsensor, contactsensor

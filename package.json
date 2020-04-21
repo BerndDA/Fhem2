@@ -16,10 +16,11 @@
     "homebridge": ">=0.4.0"
   },
   "dependencies": {
-    "@types/node": "^13.9.8",
-    "typescript": "^3.8.0"
+   
   },
   "devDependencies": {
+    "@types/node": "^13.9.8",
+    "typescript": "^3.8.0",
     "homebridge": "file:../homebridge"
   },
   "scripts": {
