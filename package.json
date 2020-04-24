@@ -24,6 +24,6 @@
     "homebridge": "file:../homebridge"
   },
   "scripts": {
-    "install": "tsc"
+    "build": "tsc"
   }
 }

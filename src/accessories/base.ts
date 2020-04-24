@@ -1,17 +1,20 @@
 import { IFhemObservable } from '../client/broker';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
 import { Logging, Service, Characteristic, AccessoryPlugin } from 'homebridge';
-import { IFhemDevice as FhemDevice } from '../client/fhemtypes';
+import { IFhemDevice } from '../client/fhemtypes';
 
+export interface IFhemAccessoryConstructor {
+    new(data: IFhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable):AccessoryPlugin;
+}
 
 export abstract class FhemAccessory implements AccessoryPlugin {
     name: string;
-    data: FhemDevice;
+    data: IFhemDevice;
     log: Logging;
     fhemName: string;
     fhemClient: IFhemClient;
 
-    protected constructor(data: FhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
+    constructor(data: IFhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
         this.log = log;
         this.name = data.Attributes.alias ? data.Attributes.alias : data.Name;

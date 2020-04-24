@@ -11,8 +11,9 @@ import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accesso
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
 import { FhemLametricRemote } from './accessories/remote';
 import { Logging, API, PlatformConfig, StaticPlatformPlugin, AccessoryPlugin } from 'homebridge'
+import { IFhemAccessoryConstructor } from './accessories/base';
 
-let accessoryTypes: { [name: string]: any } = {};
+let accessoryTypes: { [name: string]: IFhemAccessoryConstructor } = {};
 accessoryTypes['heating'] = FhemThermostat;
 accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
 accessoryTypes['heatingEQ3'] = FhemEqivaThermostat;
