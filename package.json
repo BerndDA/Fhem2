@@ -1,6 +1,6 @@
 {
   "name": "homebridge-fhem2",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "FHEM plugin for homebridge: https://github.com/nfarina/homebridge",
   "main": "lib/index.js",
   "repository": {
@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/node": "^13.9.8",
     "typescript": "^3.8.0",
-    "homebridge": "file:../homebridge"
+    "homebridge": "1.0.1"
   },
   "scripts": {
     "build": "tsc"
