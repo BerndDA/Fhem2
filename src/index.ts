@@ -13,22 +13,23 @@ import { FhemLametricRemote } from './accessories/remote';
 import { Logging, API, PlatformConfig, StaticPlatformPlugin, AccessoryPlugin } from 'homebridge'
 import { IFhemAccessoryConstructor } from './accessories/base';
 
-let accessoryTypes: { [name: string]: IFhemAccessoryConstructor } = {};
-accessoryTypes['heating'] = FhemThermostat;
-accessoryTypes['heatingKW9010'] = FhemHeatingKW910;
-accessoryTypes['heatingEQ3'] = FhemEqivaThermostat;
-accessoryTypes['switch'] = FhemSwitch;
-accessoryTypes['lightbulb'] = FhemLightbulb;
-accessoryTypes['motionsensor'] = FhemMotionSensor;
-accessoryTypes['contactsensor'] = FhemContactSensor;
-accessoryTypes['temperaturesensor'] = FhemTemperatureSensor;
-accessoryTypes['temperaturehumiditysensor'] = FhemTemperatureHumiditySensor;
-accessoryTypes['tempKW9010'] = FhemTempKW9010;
-accessoryTypes['outlet'] = FhemOutlet;
-accessoryTypes['windowcovering'] = FhemWindowCovering;
-accessoryTypes['lametricremote'] = FhemLametricRemote;
-accessoryTypes['progswitch'] = FhemProgSwitch;
-accessoryTypes['updownswitch'] = FhemDoubleTapSwitch;
+const accessoryTypes: { [name: string]: IFhemAccessoryConstructor } = {
+    heating: FhemThermostat,
+    heatingKW9010: FhemHeatingKW910,
+    heatingEQ3: FhemEqivaThermostat,
+    switch: FhemSwitch,
+    lightbulb: FhemLightbulb,
+    motionsensor: FhemMotionSensor,
+    contactsensor: FhemContactSensor,
+    temperaturesensor: FhemTemperatureSensor,
+    temperaturehumiditysensor: FhemTemperatureHumiditySensor,
+    tempKW9010: FhemTempKW9010,
+    outlet: FhemOutlet,
+    windowcovering: FhemWindowCovering,
+    lametricremote: FhemLametricRemote,
+    progswitch: FhemProgSwitch,
+    updownswitch: FhemDoubleTapSwitch
+}
 
 export default function(homebridge: API) {
 
