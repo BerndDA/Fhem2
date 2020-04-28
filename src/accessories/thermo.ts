@@ -162,7 +162,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
     getHCState(callback: CharacteristicGetCallback): void {
         this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature').then(temp =>
             callback(null,
-                Number(temp) > 4.5 ? FhemEqivaThermostat.autoHeatingCoolingState
+                Number(temp) > 4.5 ? Characteristic.CurrentHeatingCoolingState.HEAT
                 : Characteristic.CurrentHeatingCoolingState.OFF)
         );
     }
@@ -192,9 +192,8 @@ export class FhemEqivaThermostat extends FhemAccessory {
     }
 
     setHCState(value: CharacteristicValue, callback: CharacteristicSetCallback, context: string): void {
-        if (context !== 'fhem')
-            this.setFhemReading('desiredTemperature',
-                value === Characteristic.CurrentHeatingCoolingState.OFF ? '4.5' : '18.0');
+        if (context !== 'fhem' && value === Characteristic.CurrentHeatingCoolingState.OFF)
+            this.setFhemReading('desiredTemperature', '4.5');
         callback();
     }
 
@@ -208,7 +207,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
         if (reading === 'desiredTemperature') {
             this.targetTemperature.setValue(Number(value), undefined, 'fhem');
             this.currentHeatingCoolingState.setValue(
-                Number(value) > 4.5 ? FhemEqivaThermostat.autoHeatingCoolingState
+                Number(value) > 4.5 ? Characteristic.CurrentHeatingCoolingState.HEAT
                 : Characteristic.CurrentHeatingCoolingState.OFF, undefined, 'fhem');
         }
     }
