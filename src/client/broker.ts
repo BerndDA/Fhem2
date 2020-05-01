@@ -2,7 +2,7 @@
 
 'use strict';
 
-import events = require('events');
+import events from 'events';
 
 export interface IFhemObservable {
     on(event: string, listener: (value1: string, value2?: string) => void): this;

@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/node": "^13.9.8",
     "typescript": "^3.8.0",
-    "homebridge": "1.0.1"
+    "homebridge": "file://../homebridge"
   },
   "scripts": {
     "build": "tsc"

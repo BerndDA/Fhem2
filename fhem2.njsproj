@@ -9,7 +9,7 @@
     <ToolsVersionPromptShown>2.6</ToolsVersionPromptShown>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
-    <Environment>DEBUG=INFO</Environment>
+    <Environment>DEBUG=*</Environment>
     <TypeScriptBuildMode>true</TypeScriptBuildMode>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
