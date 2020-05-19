@@ -33,8 +33,8 @@ export abstract class FhemOnOffSwitchable extends FhemAccessory {
 
 export class FhemSwitch extends FhemOnOffSwitchable {
     getDeviceServices(): Service[] {
-        const switchService = new Service.Switch(this.name);
-        this.characteristic = switchService.getCharacteristic(Characteristic.On)!;
+        const switchService = new FhemAccessory.hap.Service.Switch(this.name);
+        this.characteristic = switchService.getCharacteristic(FhemAccessory.hap.Characteristic.On)!;
         this.characteristic
             .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
             .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
@@ -45,8 +45,8 @@ export class FhemSwitch extends FhemOnOffSwitchable {
 
 export class FhemLightbulb extends FhemOnOffSwitchable {
     getDeviceServices(): Service[] {
-        const service = new Service.Lightbulb(this.name);
-        this.characteristic = service.getCharacteristic(Characteristic.On)!;
+        const service = new FhemAccessory.hap.Service.Lightbulb(this.name);
+        this.characteristic = service.getCharacteristic(FhemAccessory.hap.Characteristic.On)!;
         this.characteristic
             .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
             .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
@@ -56,12 +56,12 @@ export class FhemLightbulb extends FhemOnOffSwitchable {
 
 export class FhemOutlet extends FhemOnOffSwitchable {
     getDeviceServices(): Service[] {
-        const service = new Service.Outlet(this.name);
-        this.characteristic = service.getCharacteristic(Characteristic.On)!;
+        const service = new FhemAccessory.hap.Service.Outlet(this.name);
+        this.characteristic = service.getCharacteristic(FhemAccessory.hap.Characteristic.On)!;
         this.characteristic
             .on(CharacteristicEventTypes.GET, this.getPowerState.bind(this))
             .on(CharacteristicEventTypes.SET, this.setPowerState.bind(this));
-        service.getCharacteristic(Characteristic.OutletInUse)!
+        service.getCharacteristic(FhemAccessory.hap.Characteristic.OutletInUse)!
             .on(CharacteristicEventTypes.GET, (callback: CharacteristicGetCallback) => { callback(null, true); });
         return [service];
     }
@@ -78,14 +78,14 @@ export class FhemProgSwitch extends FhemAccessory {
         for (let name of FhemProgSwitch.channels) {
 
             const service =
-                new Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
-            this.switchEvent.set(name, service.getCharacteristic(Characteristic.ProgrammableSwitchEvent)!);
+                new FhemAccessory.hap.Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
+            this.switchEvent.set(name, service.getCharacteristic(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent)!);
             this.buttons.set(name, new ButtonStateMachine(() =>
-                this.switchEvent.get(name)!.setValue(Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+                this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
                     undefined, 'fhem'), () =>
-                this.switchEvent.get(name)!.setValue(Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
+                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
                     undefined, 'fhem'), () =>
-                this.switchEvent.get(name)!.setValue(Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS,
+                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS,
                     undefined, 'fhem')
             ));
             this.services.push(service);

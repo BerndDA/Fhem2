@@ -17,12 +17,12 @@ export class FhemDoubleTapSwitch extends FhemAccessory {
     setValueFromFhem(_value: string, _part2?: string): void {}
 
     getDeviceServices(): any[] {
-        const sUp = new Service.Switch('up', 'up');
-        this.characteristicUp = sUp.getCharacteristic(Characteristic.On)!
+        const sUp = new FhemAccessory.hap.Service.Switch('up', 'up');
+        this.characteristicUp = sUp.getCharacteristic(FhemAccessory.hap.Characteristic.On)!
             .on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => cb(null, false))
             .on(CharacteristicEventTypes.SET, this.setUpState.bind(this));
-        const sDown = new Service.Switch('down', 'down');
-        this.characteristicDown = sDown.getCharacteristic(Characteristic.On)!
+        const sDown = new FhemAccessory.hap.Service.Switch('down', 'down');
+        this.characteristicDown = sDown.getCharacteristic(FhemAccessory.hap.Characteristic.On)!
             .on(CharacteristicEventTypes.GET, (cb: CharacteristicGetCallback) => cb(null, true))
             .on(CharacteristicEventTypes.SET, this.setDownState.bind(this));
 
@@ -57,16 +57,16 @@ export class FhemWindowCovering extends FhemAccessory {
 
     setValueFromFhem(value: string, part2?: string): void {
         if (value === 'down') {
-            this.positionState.setValue(Characteristic.PositionState.INCREASING, undefined, 'fhem');
+            this.positionState.setValue(FhemAccessory.hap.Characteristic.PositionState.INCREASING, undefined, 'fhem');
         } else if (value === 'up') {
-            this.positionState.setValue(Characteristic.PositionState.DECREASING, undefined, 'fhem');
+            this.positionState.setValue(FhemAccessory.hap.Characteristic.PositionState.DECREASING, undefined, 'fhem');
         } else if (value === 'stop') {
-            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, 'fhem');
+            this.positionState.setValue(FhemAccessory.hap.Characteristic.PositionState.STOPPED, undefined, 'fhem');
         } else if (value === 'open_ack') {
-            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, 'fhem');
+            this.positionState.setValue(FhemAccessory.hap.Characteristic.PositionState.STOPPED, undefined, 'fhem');
             this.currentPosition.setValue(100, undefined, 'fhem');
         } else if (value === 'closed') {
-            this.positionState.setValue(Characteristic.PositionState.STOPPED, undefined, 'fhem');
+            this.positionState.setValue(FhemAccessory.hap.Characteristic.PositionState.STOPPED, undefined, 'fhem');
             this.currentPosition.setValue(0, undefined, 'fhem');
         }
         if (value === 'position') {
@@ -80,15 +80,15 @@ export class FhemWindowCovering extends FhemAccessory {
     }
 
     getDeviceServices(): any[] {
-        const service = new Service.WindowCovering(this.name);
-        this.currentPosition = service.getCharacteristic(Characteristic.CurrentPosition)!;
+        const service = new FhemAccessory.hap.Service.WindowCovering(this.name);
+        this.currentPosition = service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentPosition)!;
         this.currentPosition.on(CharacteristicEventTypes.GET, this.getCurrentPosition.bind(this));
 
-        this.targetPosition = service.getCharacteristic(Characteristic.TargetPosition)!;
+        this.targetPosition = service.getCharacteristic(FhemAccessory.hap.Characteristic.TargetPosition)!;
         this.targetPosition.on(CharacteristicEventTypes.GET, this.getCurrentPosition.bind(this))
             .on(CharacteristicEventTypes.SET, this.setTargetPosition.bind(this));
 
-        this.positionState = service.getCharacteristic(Characteristic.PositionState)!;
+        this.positionState = service.getCharacteristic(FhemAccessory.hap.Characteristic.PositionState)!;
         this.positionState.on(CharacteristicEventTypes.GET, this.getPositionState.bind(this));
         return [service];
     }
@@ -102,10 +102,10 @@ export class FhemWindowCovering extends FhemAccessory {
     getPositionState(callback: CharacteristicGetCallback): void {
         this.getFhemStatus().then((status) => {
             if (status === 'down' || status === 'closes')
-                callback(null, Characteristic.PositionState.INCREASING);
+                callback(null, FhemAccessory.hap.Characteristic.PositionState.INCREASING);
             else if (status === 'up' || status === 'opens')
-                callback(null, Characteristic.PositionState.DECREASING);
-            else callback(null, Characteristic.PositionState.STOPPED);
+                callback(null, FhemAccessory.hap.Characteristic.PositionState.DECREASING);
+            else callback(null, FhemAccessory.hap.Characteristic.PositionState.STOPPED);
         });
     }
 

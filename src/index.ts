@@ -11,7 +11,7 @@ import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from './accesso
 import { FhemWindowCovering, FhemDoubleTapSwitch } from './accessories/windows';
 import { FhemLametricRemote } from './accessories/remote';
 import { Logging, API, PlatformConfig, StaticPlatformPlugin, AccessoryPlugin } from 'homebridge'
-import { IFhemAccessoryConstructor } from './accessories/base';
+import { IFhemAccessoryConstructor, FhemAccessory } from './accessories/base';
 
 const accessoryTypes: { [name: string]: IFhemAccessoryConstructor } = {
     heating: FhemThermostat,
@@ -31,8 +31,8 @@ const accessoryTypes: { [name: string]: IFhemAccessoryConstructor } = {
     updownswitch: FhemDoubleTapSwitch
 }
 
-export default function(homebridge: API) {
-
+export default function (homebridge: API) {
+    FhemAccessory.hap = homebridge.hap;
     homebridge.registerPlatform('homebridge-fhem2', 'Fhem2', Fhem2Platform);
 };
 
@@ -43,7 +43,7 @@ class Fhem2Platform implements StaticPlatformPlugin {
     fhemClient: IFhemClient;
 
     constructor(log: Logging, config: PlatformConfig) {
-        this.log = log;
+        this.log = log; 
         this.filter = config.filter;
         const broker = new FhemBroker();
         this.fhemBroker = broker;

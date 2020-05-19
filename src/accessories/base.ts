@@ -1,6 +1,6 @@
 import { IFhemObservable } from '../client/broker';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
-import { Logging, Service, Characteristic, AccessoryPlugin } from 'homebridge';
+import { Logging, Service, Characteristic, AccessoryPlugin, HAP } from 'homebridge';
 import { IFhemDevice } from '../client/fhemtypes';
 
 export interface IFhemAccessoryConstructor {
@@ -13,6 +13,7 @@ export abstract class FhemAccessory implements AccessoryPlugin {
     log: Logging;
     fhemName: string;
     fhemClient: IFhemClient;
+    public static hap: HAP;
 
     constructor(data: IFhemDevice, log: Logging, fhemClient: IFhemClient, fhemObservable: IFhemObservable) {
         this.data = data;
@@ -54,12 +55,12 @@ export abstract class FhemAccessory implements AccessoryPlugin {
     protected abstract getDeviceServices(): Service[];
 
     getServices(): Service[] {
-        const informationService = new Service.AccessoryInformation();
+        const informationService = new FhemAccessory.hap.Service.AccessoryInformation();
 
         informationService
-            .setCharacteristic(Characteristic.Manufacturer, 'FHEM')
-            .setCharacteristic(Characteristic.Model, this.data.Internals.TYPE)
-            .setCharacteristic(Characteristic.SerialNumber, this.data.Internals.NR);
+            .setCharacteristic(FhemAccessory.hap.Characteristic.Manufacturer, 'FHEM')
+            .setCharacteristic(FhemAccessory.hap.Characteristic.Model, this.data.Internals.TYPE)
+            .setCharacteristic(FhemAccessory.hap.Characteristic.SerialNumber, this.data.Internals.NR);
         const deviceServices = this.getDeviceServices();
 
         return [informationService].concat(deviceServices);
