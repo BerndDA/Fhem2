@@ -17,8 +17,8 @@ abstract class FhemSensor extends FhemAccessory {
 export class FhemMotionSensor extends FhemSensor {
 
     getDeviceServices(): Service[] {
-        const service = new Service.MotionSensor(this.name);
-        this.characteristic = service.getCharacteristic(Characteristic.MotionDetected)!;
+        const service = new FhemAccessory.hap.Service.MotionSensor(this.name);
+        this.characteristic = service.getCharacteristic(FhemAccessory.hap.Characteristic.MotionDetected)!;
         this.characteristic
             .on(CharacteristicEventTypes.GET, this.getState.bind(this));
         return [service];
@@ -28,8 +28,8 @@ export class FhemMotionSensor extends FhemSensor {
 export class FhemContactSensor extends FhemSensor {
 
     getDeviceServices(): Service[] {
-        const service = new Service.ContactSensor(this.name);
-        this.characteristic = service.getCharacteristic(Characteristic.ContactSensorState)!;
+        const service = new FhemAccessory.hap.Service.ContactSensor(this.name);
+        this.characteristic = service.getCharacteristic(FhemAccessory.hap.Characteristic.ContactSensorState)!;
         this.characteristic
             .on(CharacteristicEventTypes.GET, this.getState.bind(this));
         return [service];
@@ -41,8 +41,8 @@ export class FhemTemperatureSensor extends FhemAccessory {
     private currentTemperature!: Characteristic;
 
     getDeviceServices(): Service[] {
-        const service = new Service.TemperatureSensor(this.name);
-        this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature)!;
+        const service = new FhemAccessory.hap.Service.TemperatureSensor(this.name);
+        this.currentTemperature = service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentTemperature)!;
         this.currentTemperature.setProps({ minValue: -25 });
         this.currentTemperature.on(CharacteristicEventTypes.GET, this.getCurrentTemp.bind(this));
         return [service];
@@ -67,8 +67,8 @@ export class FhemTemperatureHumiditySensor extends FhemTemperatureSensor {
     private currentHumidity!: Characteristic;
 
     getDeviceServices(): Service[] {
-        const service = new Service.HumiditySensor(this.name);
-        this.currentHumidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity)!;
+        const service = new FhemAccessory.hap.Service.HumiditySensor(this.name);
+        this.currentHumidity = service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentRelativeHumidity)!;
         this.currentHumidity.on(CharacteristicEventTypes.GET, this.getCurrentHum.bind(this));
         return [service].concat(super.getDeviceServices());
     }

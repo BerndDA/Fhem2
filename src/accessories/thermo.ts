@@ -30,32 +30,32 @@ export class FhemThermostat extends FhemAccessory {
     }
 
     getDeviceServices(): Service[] {
-        const service = new Service.Thermostat(this.name);
+        const service = new FhemAccessory.hap.Service.Thermostat(this.name);
         this.currentHeatingCoolingState =
-            service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)!;
-        this.currentHeatingCoolingState.on(CharacteristicEventTypes.GET, this.getHCState.bind(this));
+            service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState)!;
+        this.currentHeatingCoolingState.on(FhemAccessory.hap.CharacteristicEventTypes.GET, this.getHCState.bind(this));
 
         this.targetHeatingCoolingState =
-            service.getCharacteristic(Characteristic.TargetHeatingCoolingState)!;
+            service.getCharacteristic(FhemAccessory.hap.Characteristic.TargetHeatingCoolingState)!;
         this.targetHeatingCoolingState.on(CharacteristicEventTypes.GET, this.getHCState.bind(this))
             .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
                 callback();
             });
 
-        this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature)!;
+        this.currentTemperature = service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentTemperature)!;
         this.currentTemperature.on(CharacteristicEventTypes.GET, this.getCurrentTemp.bind(this));
 
         this.currentRelativeHumidity =
-            service.addCharacteristic(new Characteristic.CurrentRelativeHumidity());
+            service.addCharacteristic(new FhemAccessory.hap.Characteristic.CurrentRelativeHumidity());
         this.currentRelativeHumidity.on(CharacteristicEventTypes.GET, this.getCurrentHumidity.bind(this));
 
-        this.targetTemperature = service.getCharacteristic(Characteristic.TargetTemperature)!;
+        this.targetTemperature = service.getCharacteristic(FhemAccessory.hap.Characteristic.TargetTemperature)!;
         this.targetTemperature.on(CharacteristicEventTypes.GET, this.getTargetTemp.bind(this))
             .on(CharacteristicEventTypes.SET, this.setTargetTemp.bind(this));
 
-        this.temperatureDisplayUnits = service.getCharacteristic(Characteristic.TemperatureDisplayUnits)!;
+        this.temperatureDisplayUnits = service.getCharacteristic(FhemAccessory.hap.Characteristic.TemperatureDisplayUnits)!;
         this.temperatureDisplayUnits.on(CharacteristicEventTypes.GET,
-                (cb: CharacteristicGetCallback) => cb(null, Characteristic.TemperatureDisplayUnits.CELSIUS))
+            (cb: CharacteristicGetCallback) => cb(null, FhemAccessory.hap.Characteristic.TemperatureDisplayUnits.CELSIUS))
             .on(CharacteristicEventTypes.SET,
                 (value: CharacteristicValue, callback: CharacteristicSetCallback, context: string) => { callback(); });
 
@@ -65,8 +65,8 @@ export class FhemThermostat extends FhemAccessory {
     getHCState(callback: CharacteristicGetCallback): void {
         this.getFhemNamedValue(FhemValueType.Readings, 'actorState').then(status =>
             callback(null,
-                status === 'on' ? Characteristic.CurrentHeatingCoolingState.HEAT
-                : Characteristic.CurrentHeatingCoolingState.OFF)
+                status === 'on' ? FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.HEAT
+                    : FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.OFF)
         );
     }
 
@@ -128,30 +128,30 @@ export class FhemEqivaThermostat extends FhemAccessory {
     }
 
     getDeviceServices(): Service[] {
-        const service = new Service.Thermostat(this.name);
+        const service = new FhemAccessory.hap.Service.Thermostat(this.name);
         this.currentHeatingCoolingState =
-            service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)!;
+            service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState)!;
         this.currentHeatingCoolingState.on(CharacteristicEventTypes.GET, this.getHCState.bind(this));
 
         this.targetHeatingCoolingState =
-            service.getCharacteristic(Characteristic.TargetHeatingCoolingState)!;
+            service.getCharacteristic(FhemAccessory.hap.Characteristic.TargetHeatingCoolingState)!;
         this.targetHeatingCoolingState.on(CharacteristicEventTypes.GET, this.getHCState.bind(this))
             .on(CharacteristicEventTypes.SET, this.setHCState.bind(this));
 
-        this.currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature)!;
+        this.currentTemperature = service.getCharacteristic(FhemAccessory.hap.Characteristic.CurrentTemperature)!;
         this.currentTemperature.on(CharacteristicEventTypes.GET, this.getCurrentTemp.bind(this));
 
         this.currentRelativeHumidity =
-            service.addCharacteristic(new Characteristic.CurrentRelativeHumidity());
+            service.addCharacteristic(new FhemAccessory.hap.Characteristic.CurrentRelativeHumidity());
         this.currentRelativeHumidity.on(CharacteristicEventTypes.GET, this.getCurrentHumidity.bind(this));
 
-        this.targetTemperature = service.getCharacteristic(Characteristic.TargetTemperature)!;
+        this.targetTemperature = service.getCharacteristic(FhemAccessory.hap.Characteristic.TargetTemperature)!;
         this.targetTemperature.on(CharacteristicEventTypes.GET, this.getTargetTemp.bind(this))
             .on(CharacteristicEventTypes.SET, this.setTargetTemp.bind(this));
 
-        this.temperatureDisplayUnits = service.getCharacteristic(Characteristic.TemperatureDisplayUnits)!;
+        this.temperatureDisplayUnits = service.getCharacteristic(FhemAccessory.hap.Characteristic.TemperatureDisplayUnits)!;
         this.temperatureDisplayUnits.on(CharacteristicEventTypes.GET,
-                (cb: CharacteristicGetCallback) => cb(null, Characteristic.TemperatureDisplayUnits.CELSIUS))
+            (cb: CharacteristicGetCallback) => cb(null, FhemAccessory.hap.Characteristic.TemperatureDisplayUnits.CELSIUS))
             .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
                 callback();
             });
@@ -162,8 +162,8 @@ export class FhemEqivaThermostat extends FhemAccessory {
     getHCState(callback: CharacteristicGetCallback): void {
         this.getFhemNamedValue(FhemValueType.Readings, 'desiredTemperature').then(temp =>
             callback(null,
-                Number(temp) > 4.5 ? Characteristic.CurrentHeatingCoolingState.HEAT
-                : Characteristic.CurrentHeatingCoolingState.OFF)
+                Number(temp) > 4.5 ? FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.HEAT
+                    : FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.OFF)
         );
     }
 
@@ -192,7 +192,7 @@ export class FhemEqivaThermostat extends FhemAccessory {
     }
 
     setHCState(value: CharacteristicValue, callback: CharacteristicSetCallback, context: string): void {
-        if (context !== 'fhem' && value === Characteristic.CurrentHeatingCoolingState.OFF)
+        if (context !== 'fhem' && value === FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.OFF)
             this.setFhemReading('desiredTemperature', '4.5');
         callback();
     }
@@ -207,8 +207,8 @@ export class FhemEqivaThermostat extends FhemAccessory {
         if (reading === 'desiredTemperature') {
             this.targetTemperature.setValue(Number(value), undefined, 'fhem');
             this.currentHeatingCoolingState.setValue(
-                Number(value) > 4.5 ? Characteristic.CurrentHeatingCoolingState.HEAT
-                : Characteristic.CurrentHeatingCoolingState.OFF, undefined, 'fhem');
+                Number(value) > 4.5 ? FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.HEAT
+                    : FhemAccessory.hap.Characteristic.CurrentHeatingCoolingState.OFF, undefined, 'fhem');
         }
     }
 }
