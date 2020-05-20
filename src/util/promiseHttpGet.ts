@@ -1,7 +1,7 @@
 /// <reference types="node" />
 'use strict';
 
-import http from 'http';
+import * as http from 'http';
 
 export default async function getContent(url: string): Promise<any> {
     // return new pending promise

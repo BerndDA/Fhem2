@@ -3,9 +3,9 @@
 'use strict';
 
 import { IFhemBroker } from './broker';
-import http from 'http';
-import dns from 'dns';
-import os from 'os';
+import * as http from 'http';
+import * as dns from 'dns';
+import * as os from 'os';
 import getContent from '../util/promiseHttpGet';
 import { Logging } from 'homebridge';
 import { IFhemDeviceList } from './fhemtypes';

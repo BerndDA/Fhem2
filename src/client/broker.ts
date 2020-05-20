@@ -2,7 +2,7 @@
 
 'use strict';
 
-import events from 'events';
+import { EventEmitter } from 'events';
 
 export interface IFhemObservable {
     on(event: string, listener: (value1: string, value2?: string) => void): this;
@@ -12,7 +12,7 @@ export interface IFhemBroker {
     notify(topic: string, value1: string, value2: string | null): void
 }
 
-export class FhemBroker extends events.EventEmitter implements IFhemObservable, IFhemBroker {
+export class FhemBroker extends EventEmitter implements IFhemObservable, IFhemBroker {
 
     on(event: string, listener: (value1: string, value2?: string) => void): this {
         super.on(event, listener);
