@@ -70,7 +70,7 @@ export class FhemOutlet extends FhemOnOffSwitchable {
 
 export class FhemProgSwitch extends FhemAccessory {
 
-    private switchEvent: Map<string, Characteristic> = new Map();
+    private channelMap: Map<string, Characteristic> = new Map();
     private static channels = ['A0', 'AI', 'B0', 'BI'];
     private services: Service[] = new Array();
     private buttons: Map<string, ButtonStateMachine> = new Map();
@@ -80,14 +80,14 @@ export class FhemProgSwitch extends FhemAccessory {
 
             const service =
                 new FhemAccessory.hap.Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
-            this.switchEvent.set(name, service.getCharacteristic(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent)!);
+            this.channelMap.set(name, service.getCharacteristic(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent)!);
             this.buttons.set(name, new ButtonStateMachine()
                 .on(ButtonEvent.ShortPress, () =>
-                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS, undefined, 'fhem'))
+                    this.channelMap.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS, undefined, 'fhem'))
                 .on(ButtonEvent.LongPress, () =>
-                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.LONG_PRESS, undefined, 'fhem'))
+                    this.channelMap.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.LONG_PRESS, undefined, 'fhem'))
                 .on(ButtonEvent.DoublePress, () =>
-                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS, undefined, 'fhem'))
+                    this.channelMap.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS, undefined, 'fhem'))
             );
             this.services.push(service);
         }
@@ -95,12 +95,10 @@ export class FhemProgSwitch extends FhemAccessory {
     }
 
     setValueFromFhem(value: string, part2?: string): void {
-        const buttons = this.buttons;
         if (part2 === 'released')
-            buttons.forEach((value) => value.setReleased());
-
-        if (buttons.has(value))
-            buttons.get(value)!.setPressed();
+            this.buttons.forEach((value) => value.setReleased());
+        else if (this.buttons.has(value))
+            this.buttons.get(value)!.setPressed();
     }
 }
 
