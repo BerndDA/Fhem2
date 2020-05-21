@@ -1,6 +1,6 @@
 import { IFhemObservable } from '../client/broker';
 import { IFhemClient, FhemValueType } from '../client/fhemclient';
-import { Logging, Service, Characteristic, AccessoryPlugin, HAP } from 'homebridge';
+import { Logging, Service, AccessoryPlugin, HAP } from 'homebridge';
 import { IFhemDevice } from '../client/fhemtypes';
 
 export interface IFhemAccessoryConstructor {

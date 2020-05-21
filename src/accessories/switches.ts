@@ -1,4 +1,5 @@
 import { FhemAccessory } from './base';
+import { EventEmitter } from 'events';
 import {
     Service,
     Characteristic,
@@ -80,14 +81,14 @@ export class FhemProgSwitch extends FhemAccessory {
             const service =
                 new FhemAccessory.hap.Service.StatelessProgrammableSwitch(`${this.name} ${name}`, `${this.name} ${name}`);
             this.switchEvent.set(name, service.getCharacteristic(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent)!);
-            this.buttons.set(name, new ButtonStateMachine(() =>
-                this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-                    undefined, 'fhem'), () =>
-                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.LONG_PRESS,
-                    undefined, 'fhem'), () =>
-                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS,
-                    undefined, 'fhem')
-            ));
+            this.buttons.set(name, new ButtonStateMachine()
+                .on(ButtonEvent.ShortPress, () =>
+                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS, undefined, 'fhem'))
+                .on(ButtonEvent.LongPress, () =>
+                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.LONG_PRESS, undefined, 'fhem'))
+                .on(ButtonEvent.DoublePress, () =>
+                    this.switchEvent.get(name)!.setValue(FhemAccessory.hap.Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS, undefined, 'fhem'))
+            );
             this.services.push(service);
         }
         return this.services;
@@ -103,35 +104,37 @@ export class FhemProgSwitch extends FhemAccessory {
     }
 }
 
-class ButtonStateMachine {
+enum ButtonEvent {
+    ShortPress = "shortpress",
+    LongPress = "longpress",
+    DoublePress = "doublepress"
+}
+
+class ButtonStateMachine extends EventEmitter {
 
     private isPressed = false;
     private waitDouble = false;
     private static milliWait = 800;
-    private onShortPress: () => void;
-    private onLongPress: () => void;
-    private onDoublePress: () => void;
 
-    constructor(shortPress: () => void, longPress: () => void, doublePress: () => void) {
-        this.onShortPress = shortPress;
-        this.onLongPress = longPress;
-        this.onDoublePress = doublePress;
+    on(event: ButtonEvent, listener: () => void): this {
+        super.on(event, listener);
+        return this;
     }
 
     setPressed(): void {
         this.isPressed = true;
         setTimeout(() => {
-            if (this.isPressed) this.onLongPress();
+            if (this.isPressed) this.emit(ButtonEvent.LongPress);;
             this.isPressed = false;
         }, ButtonStateMachine.milliWait);
     }
 
     setReleased(): void {
         if (this.waitDouble) {
-            this.onDoublePress();
+            this.emit(ButtonEvent.DoublePress);
             this.waitDouble = false;
         } else if (this.isPressed) {
-            this.onShortPress();
+            this.emit(ButtonEvent.ShortPress);
             this.waitDouble = true;
             setTimeout(() => {
                 this.waitDouble = false;
