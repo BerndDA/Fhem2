@@ -7,10 +7,9 @@
     <RootNamespace>NodejsConsoleApp1</RootNamespace>
     <ScriptArguments> -D -P C:\homebplugin\Fhem2 -U C:\Users\bernd\.homebridge</ScriptArguments>
     <ToolsVersionPromptShown>2.6</ToolsVersionPromptShown>
-    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.9</TypeScriptToolsVersion>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
     <Environment>DEBUG=*</Environment>
-    <TypeScriptBuildMode>true</TypeScriptBuildMode>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -83,6 +82,7 @@
     </TypeScriptCompile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".eslintrc" />
     <Content Include="config.json.example" />
     <Content Include="package.json" />
     <Content Include="README.md" />
