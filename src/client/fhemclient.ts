@@ -39,12 +39,13 @@ export class FhemClient implements FhemClient {
     async getDeviceList(): Promise<FhemDeviceList> {
         const cmd = "jsonlist2";
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
-        return getContent(url);
+        const result = await getContent(url);
+        return JSON.parse(result) as FhemDeviceList;
     }
 
     async getFhemNamedValueForDevice(device: string, fhemType: FhemValueType, name: string): Promise<string | null> {
         const url = encodeURI(`${this.baseUrl}/fhem?cmd=jsonlist2 ${device} ${name}&XHR=1`);
-        const response = await getContent(url);
+        const response = JSON.parse(await getContent(url));
         if (response.Results.length > 0) {
             const val = response.Results[0][FhemValueType[fhemType]][name];
             return val.Value ? val.Value : val;
@@ -66,7 +67,7 @@ export class FhemClient implements FhemClient {
         await this.executeCommand(cmd);
     }
 
-    async executeCommand(cmd: string): Promise<void> {
+    public async executeCommand(cmd: string): Promise<void> {
         try {
             const url = encodeURI(`${this.baseUrl}/fhem?cmd=${cmd}&XHR=1`);
             await getContent(url);

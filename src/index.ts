@@ -8,7 +8,7 @@ import { FhemSwitch, FhemLightbulb, FhemOutlet, FhemProgSwitch } from "./accesso
 import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTemperatureHumiditySensor, FhemTempKW9010 }
     from "./accessories/sensors";
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from "./accessories/thermo";
-import { FhemWindowCovering, FhemDoubleTapSwitch } from "./accessories/windows";
+import { FhemWindowCovering, FhemDoubleTapSwitch, FhemWindowCoveringDuofern } from "./accessories/windows";
 import { FhemLametricRemote } from "./accessories/remote";
 import { Logging, API, PlatformConfig, StaticPlatformPlugin, AccessoryPlugin } from "homebridge";
 import { FhemAccessoryConstructor, FhemAccessory } from "./accessories/base";
@@ -29,6 +29,7 @@ const accessoryTypes: { [name: string]: FhemAccessoryConstructor } = {
     lametricremote: FhemLametricRemote,
     progswitch: FhemProgSwitch,
     updownswitch: FhemDoubleTapSwitch,
+    duofernblinds: FhemWindowCoveringDuofern,
 };
 
 class Fhem2Platform implements StaticPlatformPlugin {

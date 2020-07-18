@@ -5,9 +5,9 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>FHEM_Homebridge</Name>
     <RootNamespace>NodejsConsoleApp1</RootNamespace>
-    <ScriptArguments> -D -P C:\homebplugin\Fhem2 -U C:\Users\bernd\.homebridge</ScriptArguments>
+    <ScriptArguments> -D -P C:\homebplugin\Fhem2 -U C:\Users\bernd.seidenspinner\.homebridge</ScriptArguments>
     <ToolsVersionPromptShown>2.6</ToolsVersionPromptShown>
-    <TypeScriptToolsVersion>3.9</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.8</TypeScriptToolsVersion>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
     <Environment>DEBUG=*</Environment>
   </PropertyGroup>
