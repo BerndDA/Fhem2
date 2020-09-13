@@ -15,7 +15,7 @@ export abstract class FhemOnOffSwitchable extends FhemAccessory {
     protected characteristic!: Characteristic;
 
     getPowerState(callback: CharacteristicGetCallback): void {
-        this.getFhemStatus().then(status =>
+        this.getFhemStatus().then(status => 
             callback(null, status === "on"),
         );
     }
@@ -29,7 +29,9 @@ export abstract class FhemOnOffSwitchable extends FhemAccessory {
 
     setValueFromFhem(value: string): void {
         this.log(`received value: ${value} for ${this.name}`);
-        this.characteristic.setValue(value === "on", undefined, "fhem");
+        if (["on", "off"].includes(value)) {
+            this.characteristic.setValue(value === "on", undefined, "fhem");
+        }
     }
 }
 
@@ -144,7 +146,7 @@ export class FhemProgSwitch extends FhemAccessory {
         if (part2 === "released") {
             this.buttons.forEach((value) => value.setReleased());
         } else if (this.buttons.has(value)) {
-this.buttons.get(value)?.setPressed();
+            this.buttons.get(value)?.setPressed();
         }
     }
 }

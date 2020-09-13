@@ -7,9 +7,9 @@
     <RootNamespace>NodejsConsoleApp1</RootNamespace>
     <ScriptArguments> -D -P C:\homebplugin\Fhem2 -U C:\Users\bernd.seidenspinner\.homebridge</ScriptArguments>
     <ToolsVersionPromptShown>2.6</ToolsVersionPromptShown>
-    <TypeScriptToolsVersion>3.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>4.0</TypeScriptToolsVersion>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
-    <Environment>DEBUG=*</Environment>
+    <Environment>INFO=*</Environment>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
