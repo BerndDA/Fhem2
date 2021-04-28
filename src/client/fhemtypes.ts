@@ -1,17 +1,17 @@
-'use strict';
+"use strict";
 
-export interface IFhemDeviceList {
+export interface FhemDeviceList {
     // ReSharper disable once InconsistentNaming
-    Results: IFhemDevice[]
+    Results: FhemDevice[];
 }
 
-export interface IFhemDevice {
+export interface FhemDevice {
     // ReSharper disable once InconsistentNaming
     Name: string;
     // ReSharper disable once InconsistentNaming
-    Attributes: any;
+    Attributes: Record<string, string>;
     // ReSharper disable once InconsistentNaming
-    Internals: any;
+    Internals: Record<string, string>;
     // ReSharper disable once InconsistentNaming
-    Readings: any;
+    Readings: Record<string, string>;
 }
