@@ -5,7 +5,7 @@
 import { FhemBroker, FhemObservable } from "./client/broker";
 import { FhemClient } from "./client/fhemclient";
 import { FhemSwitch, FhemLightbulb, FhemOutlet, FhemProgSwitch } from "./accessories/switches";
-import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTemperatureHumiditySensor, FhemTempKW9010 }
+import { FhemMotionSensor, FhemContactSensor, FhemTemperatureSensor, FhemTemperatureHumiditySensor, FhemTempKW9010, FhemAirQualitySensor }
     from "./accessories/sensors";
 import { FhemThermostat, FhemHeatingKW910, FhemEqivaThermostat } from "./accessories/thermo";
 import { FhemWindowCovering, FhemDoubleTapSwitch, FhemWindowCoveringDuofern } from "./accessories/windows";
@@ -30,6 +30,7 @@ const accessoryTypes: { [name: string]: FhemAccessoryConstructor } = {
     progswitch: FhemProgSwitch,
     updownswitch: FhemDoubleTapSwitch,
     duofernblinds: FhemWindowCoveringDuofern,
+    airquality: FhemAirQualitySensor,
 };
 
 class Fhem2Platform implements StaticPlatformPlugin {

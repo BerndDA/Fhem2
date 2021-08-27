@@ -114,3 +114,50 @@ export class FhemTempKW9010 extends FhemTemperatureSensor {
         return { T: temp, H: hum };
     }
 }
+
+export class FhemAirQualitySensor extends FhemAccessory {
+
+    private airQuality!: Characteristic;
+    private pm25Density!: Characteristic;
+
+    getDeviceServices(): Service[] {
+        const service = new FhemAccessory.hap.Service.AirQualitySensor(this.name);
+        this.airQuality = service.getCharacteristic(FhemAccessory.hap.Characteristic.AirQuality);
+        this.airQuality.on(CharacteristicEventTypes.GET, this.getCurrentQuality.bind(this));
+        this.pm25Density = service.getCharacteristic(FhemAccessory.hap.Characteristic.PM2_5Density);
+        this.pm25Density.on(CharacteristicEventTypes.GET, this.getCurrentPM25.bind(this));
+        return [service];
+    }
+
+    setValueFromFhem(reading: string, value: string): void {
+        this.log(`received value: ${reading}.${value} for ${this.name}`);
+        if (reading === "pm25") {
+            this.airQuality.setValue(this.qualityFromPm25(Number(value)), "fhem");
+            this.pm25Density.setValue(Number(value), "fhem");
+        } 
+    }
+
+    getCurrentQuality(callback: CharacteristicGetCallback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, "pm25").then((pm25) =>
+            callback(null, this.qualityFromPm25(Number(pm25))),
+        );
+    } 
+    getCurrentPM25(callback: CharacteristicGetCallback): void {
+        this.getFhemNamedValue(FhemValueType.Readings, "pm25").then((pm25) =>
+            callback(null, Number(pm25)),
+        );
+    }
+
+    qualityFromPm25(pm25: number): number {
+        if(pm25 <= 5) {
+            return FhemAccessory.hap.Characteristic.AirQuality.EXCELLENT;
+        } else if(pm25 <= 10) {
+            return FhemAccessory.hap.Characteristic.AirQuality.GOOD;
+        } else if(pm25 <= 25) {
+            return FhemAccessory.hap.Characteristic.AirQuality.FAIR;
+        } else if(pm25 <= 50) {
+            return FhemAccessory.hap.Characteristic.AirQuality.INFERIOR;
+        }
+        return FhemAccessory.hap.Characteristic.AirQuality.POOR;
+    }
+} 

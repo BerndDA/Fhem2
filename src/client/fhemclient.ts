@@ -91,7 +91,7 @@ export class FhemClient implements FhemClient {
             url = `${this.baseUrl}/fhem?cmd=${command}&XHR=1`;
             await getContent(url);
         } catch (e) {
-            this.log.error(e);
+            this.log.error(e as string);
         }
         http.createServer((req, res) => {
             res.statusCode = 200;
